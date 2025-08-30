@@ -367,8 +367,8 @@
       }
 
       /* Columnas específicas con min-width */
-      .all-fines-table th:nth-child(2),
-      .all-fines-table td:nth-child(2) {
+      .all-fines-table th:nth-child(3),
+      .all-fines-table td:nth-child(3) {
         min-width: 150px; /* Tipus de multa */
       }
 
@@ -378,9 +378,9 @@
         font-size: 10px; /* Font-size más pequeño */
       }
 
-      .all-fines-table th:nth-child(3),
-      .all-fines-table td:nth-child(3) {
-        width: 50px; /* Import */
+      .all-fines-table th:nth-child(2),
+      .all-fines-table td:nth-child(2) {
+        min-width: 70px; /* Import */
       }
 
       .all-fines-table th {
@@ -728,8 +728,8 @@
             <thead>
               <tr>
                 <th>Jugador</th>
-                <th>Tipus de Multa</th>
                 <th>Import</th>
+                <th>Tipus de Multa</th>
                 <th>Comentari</th>
                 <th>Data</th>
                 <th>Estat</th>
@@ -741,8 +741,8 @@
                 :key="fine.jugador + fine.tipodemulta + fine.fechacreacion"
               >
                 <td>{{ fine.jugador }}</td>
-                <td>{{ fine.tipodemulta }}</td>
                 <td class="amount" style="color: #6c757d;">{{ fine.precio.toFixed(2) }} €</td>
+                <td>{{ fine.tipodemulta }}</td>
                 <td>{{ fine.comment }}</td>
                 <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
                 <td>
@@ -754,7 +754,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="3"><strong>Total:</strong></td>
+                <td colspan="1"><strong>Total:</strong></td>
                 <td class="amount total">
                   <strong style="color: black;">{{ totalFilteredFines.toFixed(2) }} €</strong>
                 </td>
@@ -802,8 +802,8 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="1"><strong>Total:</strong></td>
-                    <td :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]">
+                    <td colspan="2"><strong>Total:</strong></td>
+                    <td style="text-align: right" :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]">
                       <strong
                         >{{ selectedPlayer.totalFines.toFixed(2) }} €</strong
                       >
