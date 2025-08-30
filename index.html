@@ -108,8 +108,23 @@
       .amount {
         font-size: 20px;
         font-weight: 700;
-        color: #dc3545;
         display: block;
+      }
+
+      .amount.low {
+        color: #6c757d; /* Gris para 0-10€ */
+      }
+
+      .amount.medium {
+        color: #ffc107; /* Amarillo para 11-25€ */
+      }
+
+      .amount.high {
+        color: #fd7e14; /* Naranja para 26-40€ */
+      }
+
+      .amount.critical {
+        color: #dc3545; /* Rojo para 41€+ */
       }
 
       .count {
@@ -614,7 +629,7 @@
               <span class="player-name">{{ player.name }}</span>
             </div>
             <div class="total-fines">
-              <span class="amount">{{ player.totalFines.toFixed(2) }} €</span>
+              <span :class="['amount', getAmountClass(player.totalFines)]">{{ player.totalFines.toFixed(2) }} €</span>
               <span class="count">({{ player.pendingCount }} multes)</span>
             </div>
           </div>
@@ -711,7 +726,7 @@
                 <td>{{ fine.jugador }}</td>
                 <td>{{ fine.tipodemulta }}</td>
                 <td>{{ fine.comment }}</td>
-                <td class="amount">{{ fine.precio.toFixed(2) }} €</td>
+                <td class="amount" style="color: #6c757d;">{{ fine.precio.toFixed(2) }} €</td>
                 <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
                 <td>
                   <span :class="['status', fine.status.toLowerCase()]">
@@ -724,7 +739,7 @@
               <tr>
                 <td colspan="3"><strong>Total:</strong></td>
                 <td class="amount total">
-                  <strong>{{ totalFilteredFines.toFixed(2) }} €</strong>
+                  <strong style="color: black;">{{ totalFilteredFines.toFixed(2) }} €</strong>
                 </td>
                 <td colspan="2"></td>
               </tr>
@@ -771,7 +786,7 @@
                 <tfoot>
                   <tr>
                     <td colspan="1"><strong>Total:</strong></td>
-                    <td class="amount total">
+                    <td :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]">
                       <strong
                         >{{ selectedPlayer.totalFines.toFixed(2) }} €</strong
                       >
@@ -1103,6 +1118,13 @@
           
           toggleFilters() {
             this.filtersVisible = !this.filtersVisible;
+          },
+          
+          getAmountClass(amount) {
+            if (amount <= 10) return 'low';
+            if (amount <= 25) return 'medium';
+            if (amount <= 40) return 'high';
+            return 'critical';
           },
         },
         mounted() {
