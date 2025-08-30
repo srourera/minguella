@@ -460,7 +460,7 @@
     <script>
       const { createApp } = Vue;
 
-      const API_URL = 'https://script.google.com/macros/s/AKfycbx0qYEjAPaKuRyuSh92t0XByhXUu-LcTRDwS7DQTBzgzTl7xVuzo56aROiGY7UTCKyR/exec';
+      const API_URL = 'https://script.google.com/macros/s/AKfycbyCn7Mu1H3l7Vn21bXxsZfte58lRXXG4aHL7ttPBmm2tSdzIOf96soImawUDGCX-fP3Kw/exec';
       const TOKEN = '';
 
       // Constantes de datos
@@ -569,12 +569,8 @@
           async createFine(payload) {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                action: 'addLine',
-                token: TOKEN || undefined,
-                payload
-                })
+                headers: { 'Content-Type': 'application/json' },        // provoca preflight → ya lo soporta doOptions
+                body: JSON.stringify({ action: 'addLine', token: TOKEN || undefined, payload })
             });
             const json = await res.json();
             if (!json.ok) throw new Error(json.error || 'Error');
