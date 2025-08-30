@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Multas — Privado</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:24px;background:#fafafa;color:#222}
+    h1{margin:0 0 8px}
+    .muted{color:#666}
+    input{padding:8px}
+    button{padding:8px 12px;cursor:pointer}
+    .row{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:12px 0}
+  </style>
+</head>
+<body>
+  <h1>Admin Multas (Privado)</h1>
+  <p class="muted">Solo accesible para ti (deploy: <b>Only me</b>).</p>
+
+  <div class="row">
+    <label>Jugador<br><input id="jugador" placeholder="Nombre"></label>
+    <label>Tipo de multa<br><input id="tipo" placeholder="Retraso"></label>
+    <label>Precio (€)<br><input id="precio" type="number" min="0" step="0.01" placeholder="5"></label>
+    <button onclick="add()">Añadir</button>
+  </div>
+
+  <p id="msg" class="muted"></p>
+
+  <script>
+    function add(){
+      const jugador = document.getElementById('jugador').value.trim();
+      const tipodemulta = document.getElementById('tipo').value.trim();
+      const precio = Number(document.getElementById('precio').value);
+
+      if(!jugador || !tipodemulta || isNaN(precio)){
+        document.getElementById('msg').textContent = 'Completa jugador, tipo y precio válidos.';
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('msg').textContent = (res && res.ok) ? 'Añadida ✅' : 'No se pudo añadir';
+          document.getElementById('jugador').value='';
+          document.getElementById('tipo').value='';
+          document.getElementById('precio').value='';
+        })
+        .withFailureHandler(err => {
+          document.getElementById('msg').textContent = 'Error: ' + err;
+        })
+        .addFine({ jugador, tipodemulta, precio });
+    }
+  </script>
+</body>
+</html>
