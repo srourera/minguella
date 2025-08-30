@@ -2,189 +2,37 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>Multas Minguella — Visor (CSV directo)</title>
+    <title>CSV Parser</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      :root {
-        --bg: #fafafa;
-        --fg: #222;
-        --muted: #666;
-        --card: #fff;
-        --bd: #e6e6e6;
-        --line: #ddd;
-        --hover: #f0f6ff;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        margin: 24px;
-        background: var(--bg);
-        color: var(--fg);
-      }
-      h1 {
-        margin: 0 0 8px;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--bd);
-        border-radius: 12px;
-        padding: 16px;
-      }
-      .row {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-        margin: 8px 0 16px;
-      }
-      input,
-      select,
-      button {
-        padding: 8px 10px;
-        border-radius: 8px;
-        border: 1px solid var(--bd);
-      }
-      button {
-        cursor: pointer;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--card);
-      }
-      th,
-      td {
-        border: 1px solid var(--line);
-        padding: 8px;
-        text-align: left;
-        vertical-align: top;
-      }
-      tr.clickable:hover {
-        background: var(--hover);
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-      @media (min-width: 960px) {
-        .grid {
-          grid-template-columns: 2fr 1fr;
-        }
-      }
-      .pill {
-        background: #eef;
-        padding: 2px 8px;
-        border-radius: 999px;
-        font-size: 12px;
-      }
-    </style>
   </head>
   <body>
     <div id="app">
-      <h1>Multas Minguella</h1>
-      <p class="muted">
-        Visor público leyendo <code>export?format=csv</code> de Google Sheets
-        (sin Apps Script).
-      </p>
+      <h1>CSV Parser</h1>
+      <button @click="load" :disabled="loading">
+        {{ loading ? 'Cargando...' : 'Cargar CSV' }}
+      </button>
 
-      <div class="grid">
-        <!-- Resumen -->
-        <div class="card">
-          <div class="row">
-            <button @click="load" :disabled="loading">
-              {{ loading ? 'Cargando...' : 'Recargar' }}
-            </button>
-            <span class="muted">Jugadores: {{ players.length }}</span>
-            <input
-              v-model="filters.jugador"
-              placeholder="Filtrar por jugador"
-              @input="applyFilters"
-            />
-            <select v-model="filters.status" @change="applyFilters">
-              <option value="">Todos los estados</option>
-              <option value="pendiente">pendiente</option>
-              <option value="pagada">pagada</option>
-            </select>
-            <span v-if="error" class="pill">Error: {{ error }}</span>
-          </div>
+      <div v-if="error" style="color: red; margin: 10px 0">
+        Error: {{ error }}
+      </div>
 
-          <table v-if="players.length">
-            <thead>
-              <tr>
-                <th>Jugador</th>
-                <th>Total (€)</th>
-                <th>Desglose por tipo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="p in players"
-                :key="p.name"
-                class="clickable"
-                @click="select(p.name)"
-              >
-                <td>{{ p.name }}</td>
-                <td>{{ p.total.toFixed(2) }}</td>
-                <td>
-                  <div v-for="(info, type) in p.byType" :key="type">
-                    {{ type }}: {{ info.count }} ({{ info.total.toFixed(2) }} €)
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-else class="muted">Sin datos.</p>
-        </div>
-
-        <!-- Detalle -->
-        <div class="card">
-          <h3>Detalle de {{ selected || '—' }}</h3>
-          <p class="muted" v-if="!selected">Pulsa un jugador del resumen.</p>
-
-          <div v-if="selected">
-            <p>
-              Total: {{ details.total.toFixed(2) }} € — Multas: {{
-              details.fines.length }}
-            </p>
-            <table v-if="details.fines.length">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Precio (€)</th>
-                  <th>Fecha</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(f,i) in details.fines" :key="i">
-                  <td>{{ f.tipodemulta }}</td>
-                  <td>{{ Number(f.precio).toFixed(2) }}</td>
-                  <td>{{ formatDate(f.fechacreacion) }}</td>
-                  <td>{{ f.status }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <p v-else class="muted">Sin multas.</p>
-          </div>
-        </div>
+      <div v-if="parsedData.length">
+        <h3>Datos parseados ({{ parsedData.length }} registros):</h3>
+        <pre>{{ JSON.stringify(parsedData, null, 2) }}</pre>
       </div>
     </div>
 
-    <!-- PapaParse para CSV robusto (comillas, comas, etc.) -->
+    <!-- PapaParse para CSV robusto -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <!-- Vue 3 por CDN (ESM) -->
-    <script type="module">
-      import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+    <!-- Vue 3 por CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+      const { createApp } = Vue;
 
       // 🔧 Sustituye por tu Sheet y pestaña
       const SHEET_ID = "1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI";
-      const GID = "0"; // p.ej. "0"
+      const GID = "0";
       const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
       // Utilidades
@@ -213,11 +61,10 @@
         }
         const d = new Date(s);
         if (!isNaN(d)) return d.toISOString().slice(0, 10);
-        return s; // último recurso: deja el texto tal cual
+        return s;
       };
 
       function rowsToObjects(papaResult) {
-        // Espera cabeceras: jugador, tipodemulta, precio, fechacreacion, status
         const rows = papaResult.data || [];
         if (!rows.length) return [];
         const headerMap = {};
@@ -237,69 +84,14 @@
       }
 
       createApp({
-        data: () => ({
-          loading: false,
-          error: "",
-          raw: [],
-          fines: [],
-          players: [],
-          selected: "",
-          details: { fines: [], total: 0 },
-          filters: { jugador: "", status: "" },
-        }),
+        data() {
+          return {
+            loading: false,
+            error: "",
+            parsedData: [],
+          };
+        },
         methods: {
-          formatDate(d) {
-            return parseDate(d);
-          },
-          group() {
-            const map = {};
-            for (const f of this.fines) {
-              const name = f.jugador || "Desconocido";
-              if (!map[name]) map[name] = { name, total: 0, byType: {} };
-              map[name].total += Number(f.precio) || 0;
-              const t = f.tipodemulta || "—";
-              if (!map[name].byType[t])
-                map[name].byType[t] = { count: 0, total: 0 };
-              map[name].byType[t].count += 1;
-              map[name].byType[t].total += Number(f.precio) || 0;
-            }
-            this.players = Object.values(map).sort((a, b) =>
-              a.name.localeCompare(b.name)
-            );
-            if (this.selected) this.select(this.selected);
-          },
-          select(name) {
-            this.selected = name;
-            const fines = this.fines.filter((f) => (f.jugador || "") === name);
-            const total = fines.reduce(
-              (s, f) => s + (Number(f.precio) || 0),
-              0
-            );
-            this.details = { fines, total };
-          },
-          applyFilters() {
-            const j = this.filters.jugador.trim().toLowerCase();
-            const s = this.filters.status.trim().toLowerCase();
-            this.fines = this.raw.filter((f) => {
-              const okJ = j
-                ? String(f.jugador || "")
-                    .toLowerCase()
-                    .includes(j)
-                : true;
-              const okS = s ? String(f.status || "").toLowerCase() === s : true;
-              return okJ && okS;
-            });
-            this.group();
-            if (!this.selected && this.players.length)
-              this.select(this.players[0].name);
-            if (
-              this.selected &&
-              !this.players.find((p) => p.name === this.selected) &&
-              this.players.length
-            ) {
-              this.select(this.players[0].name);
-            }
-          },
           async load() {
             this.loading = true;
             this.error = "";
@@ -311,8 +103,7 @@
                 header: true,
                 skipEmptyLines: true,
               });
-              this.raw = rowsToObjects(papa);
-              this.applyFilters();
+              this.parsedData = rowsToObjects(papa);
             } catch (e) {
               this.error = String(e);
             } finally {
