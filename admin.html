@@ -567,13 +567,17 @@
             this.comments = "";
           },
           async createFine(payload) {
+            const fd = new FormData();
+            fd.append("action", "addLine");
+            fd.append("payload", JSON.stringify(payload));
+            if (TOKEN) fd.append("token", TOKEN);
+
             const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },        // provoca preflight → ya lo soporta doOptions
-                body: JSON.stringify({ action: 'addLine', token: TOKEN || undefined, payload })
+                method: "POST",
+                body: fd
             });
             const json = await res.json();
-            if (!json.ok) throw new Error(json.error || 'Error');
+            if (!json.ok) throw new Error(json.error || "Error");
             return true;
           },
           async saveFine() {
