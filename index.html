@@ -74,13 +74,16 @@
 
         const get = (row, logical) => row[headerMap[logical]] ?? "";
 
-        return rows.map((row) => ({
-          jugador: get(row, "jugador"),
-          tipodemulta: get(row, "tipodemulta"),
-          precio: parsePrice(get(row, "precio")),
-          fechacreacion: parseDate(get(row, "fechacreacion")),
-          status: String(get(row, "status") || ""),
-        }));
+        return rows.map((row) => {
+          console.log(row);
+          return {
+            jugador: get(row, "jugador"),
+            tipodemulta: get(row, "tipodemulta"),
+            precio: parsePrice(get(row, "precio")),
+            fechacreacion: parseDate(get(row, "fechacreacion")),
+            status: String(get(row, "status") || ""),
+          };
+        });
       }
 
       createApp({
