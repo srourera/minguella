@@ -3,52 +3,146 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Multas — Privado</title>
+  <title>Multas Minguella — Visor</title>
   <style>
     body{font-family:system-ui,sans-serif;margin:24px;background:#fafafa;color:#222}
     h1{margin:0 0 8px}
     .muted{color:#666}
-    input{padding:8px}
-    button{padding:8px 12px;cursor:pointer}
-    .row{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:12px 0}
+    .card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:16px}
+    table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    tr.clickable:hover{background:#f0f6ff}
+    .grid{display:grid;grid-template-columns:1fr;gap:24px}
+    @media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
+    .pill{background:#eef;padding:2px 8px;border-radius:999px;font-size:12px}
   </style>
 </head>
 <body>
-  <h1>Admin Multas (Privado)</h1>
-  <p class="muted">Solo accesible para ti (deploy: <b>Only me</b>).</p>
+  <div id="app">
+    <h1>Multas Minguella</h1>
+    <p class="muted">Visor público (solo lectura)</p>
 
-  <div class="row">
-    <label>Jugador<br><input id="jugador" placeholder="Nombre"></label>
-    <label>Tipo de multa<br><input id="tipo" placeholder="Retraso"></label>
-    <label>Precio (€)<br><input id="precio" type="number" min="0" step="0.01" placeholder="5"></label>
-    <button onclick="add()">Añadir</button>
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <button @click="load" :disabled="loading">{{ loading?'Cargando...':'Recargar' }}</button>
+          <span class="muted"> Jugadores: {{ players.length }}</span>
+          <input v-model="filters.jugador" placeholder="Filtrar por jugador" @input="applyFilters" />
+          <select v-model="filters.status" @change="applyFilters">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">pendiente</option>
+            <option value="pagada">pagada</option>
+          </select>
+          <span v-if="error" class="pill">Error: {{ error }}</span>
+        </div>
+
+        <table v-if="players.length">
+          <thead><tr><th>Jugador</th><th>Total (€)</th><th>Desglose por tipo</th></tr></thead>
+          <tbody>
+            <tr v-for="p in players" :key="p.name" class="clickable" @click="select(p.name)">
+              <td>{{ p.name }}</td>
+              <td>{{ p.total.toFixed(2) }}</td>
+              <td>
+                <div v-for="(info, type) in p.byType" :key="type">
+                  {{ type }}: {{ info.count }} ({{ info.total.toFixed(2) }} €)
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p v-else class="muted">Sin datos.</p>
+      </div>
+
+      <div class="card">
+        <h3>Detalle de {{ selected || '—' }}</h3>
+        <p class="muted" v-if="!selected">Pulsa un jugador.</p>
+
+        <div v-if="selected">
+          <p>Total: {{ details.total.toFixed(2) }} € — Multas: {{ details.fines.length }}</p>
+          <table v-if="details.fines.length">
+            <thead><tr><th>Tipo</th><th>Precio (€)</th><th>Fecha</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr v-for="(f,i) in details.fines" :key="i">
+                <td>{{ f.tipodemulta }}</td>
+                <td>{{ Number(f.precio).toFixed(2) }}</td>
+                <td>{{ formatDate(f.fechacreacion) }}</td>
+                <td>{{ f.status }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="muted">Sin multas.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <p id="msg" class="muted"></p>
+  <script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
 
-  <script>
-    function add(){
-      const jugador = document.getElementById('jugador').value.trim();
-      const tipodemulta = document.getElementById('tipo').value.trim();
-      const precio = Number(document.getElementById('precio').value);
+    // ⬇️ PON AQUÍ LA URL DEL WEB APP (Proyecto B)
+    const API_URL = 'https://script.google.com/macros/s/TU_DEPLOY_ID/exec';
 
-      if(!jugador || !tipodemulta || isNaN(precio)){
-        document.getElementById('msg').textContent = 'Completa jugador, tipo y precio válidos.';
-        return;
-      }
-
-      google.script.run
-        .withSuccessHandler(res => {
-          document.getElementById('msg').textContent = (res && res.ok) ? 'Añadida ✅' : 'No se pudo añadir';
-          document.getElementById('jugador').value='';
-          document.getElementById('tipo').value='';
-          document.getElementById('precio').value='';
-        })
-        .withFailureHandler(err => {
-          document.getElementById('msg').textContent = 'Error: ' + err;
-        })
-        .addFine({ jugador, tipodemulta, precio });
-    }
+    createApp({
+      data:()=>({
+        loading:false, error:'',
+        raw:[], fines:[], players:[],
+        selected:'', details:{fines:[], total:0},
+        filters: { jugador:'', status:'' }
+      }),
+      methods:{
+        formatDate(d){ const dt=new Date(d); return isNaN(dt)?'':dt.toISOString().slice(0,10); },
+        group(){
+          const map={};
+          for(const f of this.fines){
+            const name=f.jugador||'Desconocido';
+            map[name]??={name,total:0,byType:{}};
+            map[name].total += (Number(f.precio)||0);
+            const t=f.tipodemulta||'—';
+            map[name].byType[t]??={count:0,total:0};
+            map[name].byType[t].count++;
+            map[name].byType[t].total += (Number(f.precio)||0);
+          }
+          this.players = Object.values(map).sort((a,b)=>a.name.localeCompare(b.name));
+          if(this.selected) this.select(this.selected);
+        },
+        select(name){
+          this.selected = name;
+          const fines = this.fines.filter(f => (f.jugador||'') === name);
+          const total = fines.reduce((s,f)=>s+(Number(f.precio)||0),0);
+          this.details = { fines, total };
+        },
+        applyFilters(){
+          const j = this.filters.jugador.trim().toLowerCase();
+          const s = this.filters.status.trim().toLowerCase();
+          this.fines = this.raw.filter(f => {
+            const okJ = j ? (String(f.jugador||'').toLowerCase().includes(j)) : true;
+            const okS = s ? (String(f.status||'').toLowerCase() === s) : true;
+            return okJ && okS;
+          });
+          this.group();
+          if(!this.selected && this.players.length) this.select(this.players[0].name);
+          if(this.selected && !this.players.find(p=>p.name===this.selected) && this.players.length) {
+            this.select(this.players[0].name);
+          }
+        },
+        async load(){
+          this.loading = true; this.error='';
+          try{
+            // GET simple, sin headers custom → evita preflight/CORS
+            const res = await fetch(API_URL, { cache: 'no-store' });
+            if(!res.ok) throw new Error('HTTP '+res.status);
+            const data = await res.json();
+            this.raw = Array.isArray(data) ? data : [];
+            this.applyFilters();
+          } catch(e){
+            this.error = String(e);
+          } finally {
+            this.loading = false;
+          }
+        }
+      },
+      mounted(){ this.load(); }
+    }).mount('#app');
   </script>
 </body>
 </html>
