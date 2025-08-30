@@ -790,14 +790,14 @@
                 <tbody>
                   <tr
                     v-for="fine in selectedPlayer.fines"
-                    :key="fine.tipodemulta + fine.fechacreacion"
+                    :key="fine.tipodemulta + fine.fechacreacion"                    
                   >
-                    <td>{{ fine.tipodemulta }}</td>
-                    <td>{{ fine.comment }}</td>
-                    <td style="text-align: right" class="amount">
+                    <td style="font-size:10px">{{ fine.tipodemulta }}</td>
+                    <td style="font-size:10px">{{ fine.comment }}</td>
+                    <td style="font-size:10px;text-align: right" class="amount">
                       {{ fine.precio.toFixed(2) }} €
                     </td>
-                    <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
+                    <td style="font-size:10px">{{ formatDateForDisplay(fine.fechacreacion) }}</td>
                   </tr>
                 </tbody>
                 <tfoot>
