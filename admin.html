@@ -567,17 +567,14 @@
             this.comments = "";
           },
           async createFine(payload) {
-            const fd = new FormData();
-            fd.append("action", "addLine");
-            fd.append("payload", JSON.stringify(payload));
-            if (TOKEN) fd.append("token", TOKEN);
-
-            const res = await fetch(API_URL, {
-                method: "POST",
-                body: fd
+            const qs = new URLSearchParams({
+                action: 'addLine',
+                payload: JSON.stringify(payload)
+                // token: TOKEN  // si decides usarlo
             });
+            const res = await fetch(`${API_URL}?${qs.toString()}`, { method: 'GET' });
             const json = await res.json();
-            if (!json.ok) throw new Error(json.error || "Error");
+            if (!json.ok) throw new Error(json.error || 'Error');
             return true;
           },
           async saveFine() {
