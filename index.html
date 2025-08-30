@@ -369,18 +369,18 @@
       /* Columnas específicas con min-width */
       .all-fines-table th:nth-child(2),
       .all-fines-table td:nth-child(2) {
-        min-width: 180px; /* Tipus de multa */
-      }
-
-      .all-fines-table th:nth-child(3),
-      .all-fines-table td:nth-child(3) {
-        min-width: 200px; /* Comentari */
-        font-size: 10px; /* Font-size más pequeño */
+        min-width: 150px; /* Tipus de multa */
       }
 
       .all-fines-table th:nth-child(4),
       .all-fines-table td:nth-child(4) {
-        min-width: 100px; /* Import */
+        min-width: 200px; /* Comentari */
+        font-size: 10px; /* Font-size más pequeño */
+      }
+
+      .all-fines-table th:nth-child(3),
+      .all-fines-table td:nth-child(3) {
+        width: 50px; /* Import */
       }
 
       .all-fines-table th {
@@ -729,8 +729,8 @@
               <tr>
                 <th>Jugador</th>
                 <th>Tipus de Multa</th>
-                <th>Comentari</th>
                 <th>Import</th>
+                <th>Comentari</th>
                 <th>Data</th>
                 <th>Estat</th>
               </tr>
@@ -742,8 +742,8 @@
               >
                 <td>{{ fine.jugador }}</td>
                 <td>{{ fine.tipodemulta }}</td>
-                <td>{{ fine.comment }}</td>
                 <td class="amount" style="color: #6c757d;">{{ fine.precio.toFixed(2) }} €</td>
+                <td>{{ fine.comment }}</td>
                 <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
                 <td>
                   <span :class="['status', fine.status.toLowerCase()]">
