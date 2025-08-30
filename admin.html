@@ -460,7 +460,7 @@
     <script>
       const { createApp } = Vue;
 
-      const API_URL = 'https://script.google.com/macros/s/AKfycbyCn7Mu1H3l7Vn21bXxsZfte58lRXXG4aHL7ttPBmm2tSdzIOf96soImawUDGCX-fP3Kw/exec';
+      const API_URL = 'https://script.google.com/macros/s/AKfycby3At8KTiXkvE2fje4cf43fqE9pJb_190qE-Ek9ArIEUAd6EjA0wGfjt4HXrzgOWVEThw/exec';
       const TOKEN = '';
 
       // Constantes de datos
@@ -525,6 +525,18 @@
             if (!this.selectedFineType) return [];
             return this.selectedFineType.amounts;
           },
+        },
+        async mounted() {
+            try {
+                console.log('mounted');
+                const res = await fetch(`${API_URL}?limit=100&offset=0`, { method: 'GET' });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Error en API');
+
+                console.log(data.rows);
+            } catch (err) {
+                console.error(err);
+            }
         },
         methods: {
           selectPlayer(player) {
