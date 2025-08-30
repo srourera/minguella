@@ -737,7 +737,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="fine in filteredAllFines"
+                v-for="fine in reversedFilteredAllFines"
                 :key="fine.jugador + fine.tipodemulta + fine.fechacreacion"
               >
                 <td>{{ fine.jugador }}</td>
@@ -1025,7 +1025,9 @@
               (a, b) => b.totalFines - a.totalFines
             );
           },
-
+          reversedFilteredAllFines() {
+            return [...this.filteredAllFines].reverse()
+          },
           filteredAllFines() {
             return this.parsedData.filter((fine) => {
               // Filtro por jugador
