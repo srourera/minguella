@@ -1,148 +1,329 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multas Minguella — Visor</title>
-  <style>
-    body{font-family:system-ui,sans-serif;margin:24px;background:#fafafa;color:#222}
-    h1{margin:0 0 8px}
-    .muted{color:#666}
-    .card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:16px}
-    table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
-    th,td{border:1px solid #ddd;padding:8px;text-align:left}
-    tr.clickable:hover{background:#f0f6ff}
-    .grid{display:grid;grid-template-columns:1fr;gap:24px}
-    @media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
-    .pill{background:#eef;padding:2px 8px;border-radius:999px;font-size:12px}
-  </style>
-</head>
-<body>
-  <div id="app">
-    <h1>Multas Minguella</h1>
-    <p class="muted">Visor público (solo lectura)</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Multas Minguella — Visor (CSV directo)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #fafafa;
+        --fg: #222;
+        --muted: #666;
+        --card: #fff;
+        --bd: #e6e6e6;
+        --line: #ddd;
+        --hover: #f0f6ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        margin: 24px;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      h1 {
+        margin: 0 0 8px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--bd);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 8px 0 16px;
+      }
+      input,
+      select,
+      button {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--bd);
+      }
+      button {
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      tr.clickable:hover {
+        background: var(--hover);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      @media (min-width: 960px) {
+        .grid {
+          grid-template-columns: 2fr 1fr;
+        }
+      }
+      .pill {
+        background: #eef;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Multas Minguella</h1>
+      <p class="muted">
+        Visor público leyendo <code>export?format=csv</code> de Google Sheets
+        (sin Apps Script).
+      </p>
 
-    <div class="grid">
-      <div class="card">
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <button @click="load" :disabled="loading">{{ loading?'Cargando...':'Recargar' }}</button>
-          <span class="muted"> Jugadores: {{ players.length }}</span>
-          <input v-model="filters.jugador" placeholder="Filtrar por jugador" @input="applyFilters" />
-          <select v-model="filters.status" @change="applyFilters">
-            <option value="">Todos los estados</option>
-            <option value="pendiente">pendiente</option>
-            <option value="pagada">pagada</option>
-          </select>
-          <span v-if="error" class="pill">Error: {{ error }}</span>
-        </div>
+      <div class="grid">
+        <!-- Resumen -->
+        <div class="card">
+          <div class="row">
+            <button @click="load" :disabled="loading">
+              {{ loading ? 'Cargando...' : 'Recargar' }}
+            </button>
+            <span class="muted">Jugadores: {{ players.length }}</span>
+            <input
+              v-model="filters.jugador"
+              placeholder="Filtrar por jugador"
+              @input="applyFilters"
+            />
+            <select v-model="filters.status" @change="applyFilters">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">pendiente</option>
+              <option value="pagada">pagada</option>
+            </select>
+            <span v-if="error" class="pill">Error: {{ error }}</span>
+          </div>
 
-        <table v-if="players.length">
-          <thead><tr><th>Jugador</th><th>Total (€)</th><th>Desglose por tipo</th></tr></thead>
-          <tbody>
-            <tr v-for="p in players" :key="p.name" class="clickable" @click="select(p.name)">
-              <td>{{ p.name }}</td>
-              <td>{{ p.total.toFixed(2) }}</td>
-              <td>
-                <div v-for="(info, type) in p.byType" :key="type">
-                  {{ type }}: {{ info.count }} ({{ info.total.toFixed(2) }} €)
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else class="muted">Sin datos.</p>
-      </div>
-
-      <div class="card">
-        <h3>Detalle de {{ selected || '—' }}</h3>
-        <p class="muted" v-if="!selected">Pulsa un jugador.</p>
-
-        <div v-if="selected">
-          <p>Total: {{ details.total.toFixed(2) }} € — Multas: {{ details.fines.length }}</p>
-          <table v-if="details.fines.length">
-            <thead><tr><th>Tipo</th><th>Precio (€)</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <table v-if="players.length">
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Total (€)</th>
+                <th>Desglose por tipo</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr v-for="(f,i) in details.fines" :key="i">
-                <td>{{ f.tipodemulta }}</td>
-                <td>{{ Number(f.precio).toFixed(2) }}</td>
-                <td>{{ formatDate(f.fechacreacion) }}</td>
-                <td>{{ f.status }}</td>
+              <tr
+                v-for="p in players"
+                :key="p.name"
+                class="clickable"
+                @click="select(p.name)"
+              >
+                <td>{{ p.name }}</td>
+                <td>{{ p.total.toFixed(2) }}</td>
+                <td>
+                  <div v-for="(info, type) in p.byType" :key="type">
+                    {{ type }}: {{ info.count }} ({{ info.total.toFixed(2) }} €)
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
-          <p v-else class="muted">Sin multas.</p>
+          <p v-else class="muted">Sin datos.</p>
+        </div>
+
+        <!-- Detalle -->
+        <div class="card">
+          <h3>Detalle de {{ selected || '—' }}</h3>
+          <p class="muted" v-if="!selected">Pulsa un jugador del resumen.</p>
+
+          <div v-if="selected">
+            <p>
+              Total: {{ details.total.toFixed(2) }} € — Multas: {{
+              details.fines.length }}
+            </p>
+            <table v-if="details.fines.length">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Precio (€)</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(f,i) in details.fines" :key="i">
+                  <td>{{ f.tipodemulta }}</td>
+                  <td>{{ Number(f.precio).toFixed(2) }}</td>
+                  <td>{{ formatDate(f.fechacreacion) }}</td>
+                  <td>{{ f.status }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-else class="muted">Sin multas.</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    <!-- PapaParse para CSV robusto (comillas, comas, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- Vue 3 por CDN (ESM) -->
+    <script type="module">
+      import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-    // ⬇️ PON AQUÍ LA URL DEL WEB APP (Proyecto B)
-    const API_URL = 'https://script.google.com/macros/s/TU_DEPLOY_ID/exec';
+      // 🔧 Sustituye por tu Sheet y pestaña
+      const SHEET_ID = "1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI";
+      const GID = "0"; // p.ej. "0"
+      const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
-    createApp({
-      data:()=>({
-        loading:false, error:'',
-        raw:[], fines:[], players:[],
-        selected:'', details:{fines:[], total:0},
-        filters: { jugador:'', status:'' }
-      }),
-      methods:{
-        formatDate(d){ const dt=new Date(d); return isNaN(dt)?'':dt.toISOString().slice(0,10); },
-        group(){
-          const map={};
-          for(const f of this.fines){
-            const name=f.jugador||'Desconocido';
-            map[name]??={name,total:0,byType:{}};
-            map[name].total += (Number(f.precio)||0);
-            const t=f.tipodemulta||'—';
-            map[name].byType[t]??={count:0,total:0};
-            map[name].byType[t].count++;
-            map[name].byType[t].total += (Number(f.precio)||0);
-          }
-          this.players = Object.values(map).sort((a,b)=>a.name.localeCompare(b.name));
-          if(this.selected) this.select(this.selected);
-        },
-        select(name){
-          this.selected = name;
-          const fines = this.fines.filter(f => (f.jugador||'') === name);
-          const total = fines.reduce((s,f)=>s+(Number(f.precio)||0),0);
-          this.details = { fines, total };
-        },
-        applyFilters(){
-          const j = this.filters.jugador.trim().toLowerCase();
-          const s = this.filters.status.trim().toLowerCase();
-          this.fines = this.raw.filter(f => {
-            const okJ = j ? (String(f.jugador||'').toLowerCase().includes(j)) : true;
-            const okS = s ? (String(f.status||'').toLowerCase() === s) : true;
-            return okJ && okS;
-          });
-          this.group();
-          if(!this.selected && this.players.length) this.select(this.players[0].name);
-          if(this.selected && !this.players.find(p=>p.name===this.selected) && this.players.length) {
-            this.select(this.players[0].name);
-          }
-        },
-        async load(){
-          this.loading = true; this.error='';
-          try{
-            // GET simple, sin headers custom → evita preflight/CORS
-            const res = await fetch(API_URL, { cache: 'no-store' });
-            if(!res.ok) throw new Error('HTTP '+res.status);
-            const data = await res.json();
-            this.raw = Array.isArray(data) ? data : [];
-            this.applyFilters();
-          } catch(e){
-            this.error = String(e);
-          } finally {
-            this.loading = false;
-          }
+      // Utilidades
+      const parsePrice = (v) => {
+        if (v == null) return 0;
+        const s = String(v).trim().replace(/[€\s]/g, "").replace(",", ".");
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : 0;
+      };
+
+      const normalizeHeader = (s) =>
+        String(s || "")
+          .trim()
+          .toLowerCase();
+
+      const parseDate = (v) => {
+        if (!v) return "";
+        const s = String(v).trim();
+        // Soporta "YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"
+        const m1 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m1) return s.slice(0, 10);
+        const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m2) {
+          const [_, d, mo, y] = m2;
+          return `${y}-${mo}-${d}`;
         }
-      },
-      mounted(){ this.load(); }
-    }).mount('#app');
-  </script>
-</body>
+        const d = new Date(s);
+        if (!isNaN(d)) return d.toISOString().slice(0, 10);
+        return s; // último recurso: deja el texto tal cual
+      };
+
+      function rowsToObjects(papaResult) {
+        // Espera cabeceras: jugador, tipodemulta, precio, fechacreacion, status
+        const rows = papaResult.data || [];
+        if (!rows.length) return [];
+        const headerMap = {};
+        Object.keys(rows[0]).forEach((k) => {
+          headerMap[normalizeHeader(k)] = k;
+        });
+
+        const get = (row, logical) => row[headerMap[logical]] ?? "";
+
+        return rows.map((row) => ({
+          jugador: get(row, "jugador"),
+          tipodemulta: get(row, "tipodemulta"),
+          precio: parsePrice(get(row, "precio")),
+          fechacreacion: parseDate(get(row, "fechacreacion")),
+          status: String(get(row, "status") || ""),
+        }));
+      }
+
+      createApp({
+        data: () => ({
+          loading: false,
+          error: "",
+          raw: [],
+          fines: [],
+          players: [],
+          selected: "",
+          details: { fines: [], total: 0 },
+          filters: { jugador: "", status: "" },
+        }),
+        methods: {
+          formatDate(d) {
+            return parseDate(d);
+          },
+          group() {
+            const map = {};
+            for (const f of this.fines) {
+              const name = f.jugador || "Desconocido";
+              if (!map[name]) map[name] = { name, total: 0, byType: {} };
+              map[name].total += Number(f.precio) || 0;
+              const t = f.tipodemulta || "—";
+              if (!map[name].byType[t])
+                map[name].byType[t] = { count: 0, total: 0 };
+              map[name].byType[t].count += 1;
+              map[name].byType[t].total += Number(f.precio) || 0;
+            }
+            this.players = Object.values(map).sort((a, b) =>
+              a.name.localeCompare(b.name)
+            );
+            if (this.selected) this.select(this.selected);
+          },
+          select(name) {
+            this.selected = name;
+            const fines = this.fines.filter((f) => (f.jugador || "") === name);
+            const total = fines.reduce(
+              (s, f) => s + (Number(f.precio) || 0),
+              0
+            );
+            this.details = { fines, total };
+          },
+          applyFilters() {
+            const j = this.filters.jugador.trim().toLowerCase();
+            const s = this.filters.status.trim().toLowerCase();
+            this.fines = this.raw.filter((f) => {
+              const okJ = j
+                ? String(f.jugador || "")
+                    .toLowerCase()
+                    .includes(j)
+                : true;
+              const okS = s ? String(f.status || "").toLowerCase() === s : true;
+              return okJ && okS;
+            });
+            this.group();
+            if (!this.selected && this.players.length)
+              this.select(this.players[0].name);
+            if (
+              this.selected &&
+              !this.players.find((p) => p.name === this.selected) &&
+              this.players.length
+            ) {
+              this.select(this.players[0].name);
+            }
+          },
+          async load() {
+            this.loading = true;
+            this.error = "";
+            try {
+              const res = await fetch(CSV_URL, { cache: "no-store" });
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              const text = await res.text();
+              const papa = Papa.parse(text, {
+                header: true,
+                skipEmptyLines: true,
+              });
+              this.raw = rowsToObjects(papa);
+              this.applyFilters();
+            } catch (e) {
+              this.error = String(e);
+            } finally {
+              this.loading = false;
+            }
+          },
+        },
+        mounted() {
+          this.load();
+        },
+      }).mount("#app");
+    </script>
+  </body>
 </html>
