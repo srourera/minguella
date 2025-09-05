@@ -905,35 +905,7 @@
             .toLowerCase();
 
         const parseDate = (v) => {
-          if (!v) return "";
-          const s = String(v).trim();
-
-          // Si ya es formato YYYY-MM-DD, devolver solo la fecha
-          if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
-            return s.substring(0, 10);
-          }
-
-          // Si es formato DD/MM/YYYY, convertir
-          const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-          if (m2) {
-            const [_, d, mo, y] = m2;
-            return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
-          }
-
-          // Para otros formatos, crear fecha y extraer solo la parte de fecha
-          try {
-            const d = new Date(s);
-            if (!isNaN(d.getTime())) {
-              const year = d.getFullYear();
-              const month = String(d.getMonth() + 1).padStart(2, "0");
-              const day = String(d.getDate()).padStart(2, "0");
-              return `${year}-${month}-${day}`;
-            }
-          } catch (e) {
-            // Si falla, devolver el string original
-          }
-
-          return s;
+          return v.split(" ")[0];
         };
 
         function rowsToObjects(papaResult) {
@@ -1094,7 +1066,6 @@
                   skipEmptyLines: true,
                 });
                 this.normes = papa.data;
-                console.log(this.normes);
               } catch (e) {
                 this.error = String(e);
               }
@@ -1140,7 +1111,7 @@
               this.selectedPlayer = null;
             },
             formatDateForDisplay(dateString) {
-              return dateString.slice(0, 10);
+              return dateString; //.slice(0, 10);
             },
 
             clearFilters() {
