@@ -249,9 +249,32 @@
       }
 
       /* Tabla de todas las multas con filtros */
-      .all-fines-section {
+      .all-fines-section,
+      .normes-section {
         margin-top: 40px;
         padding: 0 10px;
+      }
+
+      .norma {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #6c757d;
+        border-radius: 4px;
+        padding: 10px;
+        border: 1px solid #e9ecef;
+      }
+
+      .norma .exception {
+        font-size: 10px;
+        color: #721c24;
+        border-radius: 10px;
+        padding: 2px 5px;
+        border: 1px solid #daacaf;
+        background: #f8d7da;
+        min-width: 75px;
       }
 
       .section-header {
@@ -623,14 +646,16 @@
   </head>
   <body>
     <div id="app">
-      <div style="text-align: center;">
-        <img style="width: 150px; height: 150px; object-fit: contain;" src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" />
+      <div style="text-align: center">
+        <img
+          style="width: 150px; height: 150px; object-fit: contain"
+          src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg"
+        />
       </div>
       <h1>Multes Minguella - Senior A</h1>
 
-      <div v-if="error" class="error">Error: {{ error }}</div>
-
-      <div v-if="parsedData.length">
+      <div v-if="parsedData.length" id="app-content" style="visibility: hidden">
+        <div v-if="error" class="error">Error: {{ error }}</div>
         <h3>Multes per Jugador</h3>
 
         <!-- Tabla agrupada por jugador -->
@@ -646,20 +671,30 @@
               <span class="player-name">{{ player.name }}</span>
             </div>
             <div class="total-fines">
-              <span :class="['amount', getAmountClass(player.totalFines)]">{{ player.totalFines.toFixed(2) }} €</span>
+              <span :class="['amount', getAmountClass(player.totalFines)]"
+                >{{ player.totalFines.toFixed(2) }} €</span
+              >
               <span class="count">({{ player.pendingCount }} multes)</span>
             </div>
           </div>
         </div>
 
-                <!-- Listado de todas las multas con filtros -->
+        <!-- Listado de todas las multas con filtros -->
         <div class="all-fines-section">
-          <div class="section-header" style="margin:0">
-            <h3>Totes les Multes</h3>
-            
+          <div class="section-header" style="margin: 0">
+            <h3 style="display: flex; flex-direction: column">
+              Totes les Multes
+              <a
+                style="color: #ccc; font-size: 12px; margin: 0px"
+                href="https://docs.google.com/spreadsheets/d/1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI/edit?gid=0#gid=0"
+                target="_blank"
+                >Excel</a
+              >
+            </h3>
+
             <!-- Botón para mostrar/ocultar filtros -->
-            <button 
-              @click="toggleFilters" 
+            <button
+              @click="toggleFilters"
               class="toggle-filters-btn"
               :class="{ 'expanded': filtersVisible }"
             >
@@ -667,7 +702,7 @@
               <span v-else>🔍 Ocultar Filtres</span>
             </button>
           </div>
-          
+
           <!-- Filtros -->
           <div class="filters-container" :class="{ 'visible': filtersVisible }">
             <div class="filter-group">
@@ -725,435 +760,417 @@
           <!-- Tabla de todas las multas -->
           <div class="table-container">
             <table class="all-fines-table">
-            <thead>
-              <tr>
-                <th>Jugador</th>
-                <th>Import</th>
-                <th>Tipus de Multa</th>
-                <th>Comentari</th>
-                <th>Data</th>
-                <th>Estat</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="fine in reversedFilteredAllFines"
-                :key="fine.jugador + fine.tipodemulta + fine.fechacreacion"
-              >
-                <td>{{ fine.jugador }}</td>
-                <td class="amount" style="color: #6c757d;">{{ fine.precio.toFixed(2) }} €</td>
-                <td>{{ fine.tipodemulta }}</td>
-                <td>{{ fine.comment }}</td>
-                <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
-                <td>
-                  <span :class="['status', fine.status.toLowerCase()]">
-                    {{ fine.status }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="1"><strong>Total:</strong></td>
-                <td class="amount total">
-                  <strong style="color: black;">{{ totalFilteredFines.toFixed(2) }} €</strong>
-                </td>
-                <td colspan="2"></td>
-              </tr>
-            </tfoot>
-          </table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Import</th>
+                  <th>Tipus de Multa</th>
+                  <th>Comentari</th>
+                  <th>Data</th>
+                  <th>Estat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="fine in reversedFilteredAllFines"
+                  :key="fine.jugador + fine.tipodemulta + fine.fechacreacion"
+                >
+                  <td>{{ fine.jugador }}</td>
+                  <td class="amount" style="color: #6c757d">
+                    {{ fine.precio.toFixed(2) }} €
+                  </td>
+                  <td>{{ fine.tipodemulta }}</td>
+                  <td>{{ fine.comment }}</td>
+                  <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
+                  <td>
+                    <span :class="['status', fine.status.toLowerCase()]">
+                      {{ fine.status }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="1"><strong>Total:</strong></td>
+                  <td class="amount total">
+                    <strong style="color: black"
+                      >{{ totalFilteredFines.toFixed(2) }} €</strong
+                    >
+                  </td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Popup de detalle de multas -->
+          <div
+            v-if="selectedPlayer"
+            class="modal-overlay"
+            @click="closePlayerDetails"
+          >
+            <div class="modal-content" @click.stop>
+              <div class="modal-header">
+                <h3>Multes de {{ selectedPlayer.name }}</h3>
+                <button class="close-btn" @click="closePlayerDetails">
+                  &times;
+                </button>
+              </div>
+              <div class="modal-body">
+                <table class="fines-table">
+                  <thead>
+                    <tr>
+                      <th>Tipus de Multa</th>
+                      <th>Comentari</th>
+                      <th>Import</th>
+                      <th>Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="fine in selectedPlayer.fines"
+                      :key="fine.tipodemulta + fine.fechacreacion"
+                    >
+                      <td style="font-size: 10px">{{ fine.tipodemulta }}</td>
+                      <td style="font-size: 10px">{{ fine.comment }}</td>
+                      <td
+                        style="font-size: 10px; text-align: right"
+                        class="amount"
+                      >
+                        {{ fine.precio.toFixed(2) }} €
+                      </td>
+                      <td style="font-size: 10px">
+                        {{ formatDateForDisplay(fine.fechacreacion) }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="2"><strong>Total:</strong></td>
+                      <td
+                        style="text-align: right"
+                        :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]"
+                      >
+                        <strong
+                          >{{ selectedPlayer.totalFines.toFixed(2) }} €</strong
+                        >
+                      </td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Popup de detalle de multas -->
-        <div
-          v-if="selectedPlayer"
-          class="modal-overlay"
-          @click="closePlayerDetails"
-        >
-          <div class="modal-content" @click.stop>
-            <div class="modal-header">
-              <h3>Multes de {{ selectedPlayer.name }}</h3>
-              <button class="close-btn" @click="closePlayerDetails">
-                &times;
-              </button>
-            </div>
-            <div class="modal-body">
-              <table class="fines-table">
-                <thead>
-                  <tr>
-                    <th>Tipus de Multa</th>
-                    <th>Comentari</th>
-                    <th>Import</th>
-                    <th>Data</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="fine in selectedPlayer.fines"
-                    :key="fine.tipodemulta + fine.fechacreacion"                    
-                  >
-                    <td style="font-size:10px">{{ fine.tipodemulta }}</td>
-                    <td style="font-size:10px">{{ fine.comment }}</td>
-                    <td style="font-size:10px;text-align: right" class="amount">
-                      {{ fine.precio.toFixed(2) }} €
-                    </td>
-                    <td style="font-size:10px">{{ formatDateForDisplay(fine.fechacreacion) }}</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="2"><strong>Total:</strong></td>
-                    <td style="text-align: right" :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]">
-                      <strong
-                        >{{ selectedPlayer.totalFines.toFixed(2) }} €</strong
-                      >
-                    </td>
-                    <td colspan="2"></td>
-                  </tr>
-                </tfoot>
-              </table>
+        <div class="normes-section">
+          <h3>Normes</h3>
+          <div v-for="(norma, index) in normes" :key="index" class="norma">
+            {{ norma.Norma }}
+            <div v-if="norma.Excepcio">
+              <span class="exception">Excepció: {{ norma.Excepcio }}</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <!-- PapaParse para CSV robusto -->
+      <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+      <!-- Vue 3 por CDN -->
+      <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <!-- PapaParse para CSV robusto -->
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <!-- Vue 3 por CDN -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+      <script>
+        const { createApp } = Vue;
 
-    <script>
-      const { createApp } = Vue;
+        // 🔧 Sustituye por tu Sheet y pestaña
+        const SHEET_ID = "1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI";
+        const GID = "0";
+        const GID_JUGADORS = "1534873034";
+        const GID_NORMES = "666064212";
+        const MULTES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+        const JUGADORS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_JUGADORS}`;
+        const NORMES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_NORMES}`;
 
-      // 🔧 Sustituye por tu Sheet y pestaña
-      const SHEET_ID = "1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI";
-      const GID = "0";
-      const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+        // Utilidades
+        const parsePrice = (v) => {
+          if (v == null) return 0;
+          const s = String(v).trim().replace(/[€\s]/g, "").replace(",", ".");
+          const n = parseFloat(s);
+          return Number.isFinite(n) ? n : 0;
+        };
 
-      // Utilidades
-      const parsePrice = (v) => {
-        if (v == null) return 0;
-        const s = String(v).trim().replace(/[€\s]/g, "").replace(",", ".");
-        const n = parseFloat(s);
-        return Number.isFinite(n) ? n : 0;
-      };
+        const normalizeHeader = (s) =>
+          String(s || "")
+            .trim()
+            .toLowerCase();
 
-      const normalizeHeader = (s) =>
-        String(s || "")
-          .trim()
-          .toLowerCase();
+        const parseDate = (v) => {
+          if (!v) return "";
+          const s = String(v).trim();
 
-      const parseDate = (v) => {
-        if (!v) return "";
-        const s = String(v).trim();
-
-        // Si ya es formato YYYY-MM-DD, devolver solo la fecha
-        if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
-          return s.substring(0, 10);
-        }
-
-        // Si es formato DD/MM/YYYY, convertir
-        const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (m2) {
-          const [_, d, mo, y] = m2;
-          return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
-        }
-
-        // Para otros formatos, crear fecha y extraer solo la parte de fecha
-        try {
-          const d = new Date(s);
-          if (!isNaN(d.getTime())) {
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, "0");
-            const day = String(d.getDate()).padStart(2, "0");
-            return `${year}-${month}-${day}`;
+          // Si ya es formato YYYY-MM-DD, devolver solo la fecha
+          if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
+            return s.substring(0, 10);
           }
-        } catch (e) {
-          // Si falla, devolver el string original
+
+          // Si es formato DD/MM/YYYY, convertir
+          const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (m2) {
+            const [_, d, mo, y] = m2;
+            return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          }
+
+          // Para otros formatos, crear fecha y extraer solo la parte de fecha
+          try {
+            const d = new Date(s);
+            if (!isNaN(d.getTime())) {
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, "0");
+              const day = String(d.getDate()).padStart(2, "0");
+              return `${year}-${month}-${day}`;
+            }
+          } catch (e) {
+            // Si falla, devolver el string original
+          }
+
+          return s;
+        };
+
+        function rowsToObjects(papaResult) {
+          const rows = papaResult.data || [];
+          if (!rows.length) return [];
+          const headerMap = {};
+          Object.keys(rows[0]).forEach((k) => {
+            headerMap[normalizeHeader(k)] = k;
+          });
+
+          const get = (row, logical) => row[headerMap[logical]] ?? "";
+
+          return rows.map((row) => {
+            const fecha = parseDate(get(row, "fecha creación"));
+            return {
+              jugador: get(row, "jugador"),
+              tipodemulta: get(row, "tipo de multa"),
+              precio: parsePrice(get(row, "importe")),
+              comment: get(row, "comentario"),
+              fechacreacion: fecha,
+              status: String(get(row, "estado") || ""),
+            };
+          });
         }
 
-        return s;
-      };
-
-      function rowsToObjects(papaResult) {
-        const rows = papaResult.data || [];
-        if (!rows.length) return [];
-        const headerMap = {};
-        Object.keys(rows[0]).forEach((k) => {
-          headerMap[normalizeHeader(k)] = k;
-        });
-
-        const get = (row, logical) => row[headerMap[logical]] ?? "";
-
-        return rows.map((row) => {
-          console.log(row);
-          const fecha = parseDate(get(row, "fecha creación"));
-          console.log(
-            "Fecha original:",
-            get(row, "fecha creación"),
-            "Fecha parseada:",
-            fecha
-          );
-          return {
-            jugador: get(row, "jugador"),
-            tipodemulta: get(row, "tipo de multa"),
-            precio: parsePrice(get(row, "importe")),
-            comment: get(row, "comentario"),
-            fechacreacion: fecha,
-            status: String(get(row, "estado") || ""),
-          };
-        });
-      }
-
-      const PLAYERS = [
-        {
-          name: "Balada",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756546668/minguella/Sin_ti%CC%81tulo_spdzsh.png",
-        },
-        {
-          name: "Yon",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556438/minguella/Sin_ti%CC%81tulo_8_ejbps8.png",
-        },
-        // {
-        //   name: "Estruch",
-        //   img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556437/minguella/Sin_ti%CC%81tulo_9_xzaupm.png",
-        // },
-        {
-          name: "Manzano",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556436/minguella/Sin_ti%CC%81tulo_11_zvyi5c.png",
-        },
-        {
-          name: "Didac",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556436/minguella/Sin_ti%CC%81tulo_12_unva9t.png",
-        },
-        {
-          name: "Txali",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556443/minguella/Sin_ti%CC%81tulo_q6ol16.png",
-        },
-        {
-          name: "Rou",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556576/minguella/Sin_ti%CC%81tulo_avyfrz.png",
-        },
-        {
-          name: "Adri",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556442/minguella/Sin_ti%CC%81tulo_2_yejlio.png",
-        },
-        {
-          name: "Alejandro",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556436/minguella/Sin_ti%CC%81tulo_10_kauwwz.png",
-        },
-        {
-          name: "Joel",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556440/minguella/Sin_ti%CC%81tulo_4_v1g82p.png",
-        },
-        {
-          name: "Quim",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556435/minguella/Sin_ti%CC%81tulo_13_mortuk.png",
-        },
-        {
-          name: "Mario",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556439/minguella/Sin_ti%CC%81tulo_6_ued7mv.png",
-        },
-        {
-          name: "Hueso",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556440/minguella/Sin_ti%CC%81tulo_5_fwuxxl.png",
-        },
-        {
-          name: "Jaume",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556178/minguella/Sin_ti%CC%81tulo_fagppr.png",
-        },
-        {
-          name: "Arnau",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556441/minguella/Sin_ti%CC%81tulo_3_em4idl.png",
-        },
-        {
-          name: "Tito",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556439/minguella/Sin_ti%CC%81tulo_7_rpig2d.png",
-        },
-        {
-          name: "Oscar",
-          img: "https://res.cloudinary.com/srourera/image/upload/c_thumb,w_200,g_face/v1756556707/minguella/Sin_ti%CC%81tulo_2_uqr9ue.png",
-        },
-      ];
-
-      createApp({
-        data() {
-          return {
-            loading: false,
-            error: "",
-            parsedData: [],
-            selectedPlayer: null, // Para el popup de detalle
-            filters: {
-              jugador: "",
-              tipodemulta: "",
-              comment: "",
-              status: "pendent",
-              fechaDesde: "",
-              fechaHasta: "",
-            },
-            filtersVisible: false,
-          };
-        },
-        computed: {
-          playersWithFines() {
-            // Inicializar todos los jugadores de PLAYERS
-            const playersMap = {};
-            PLAYERS.forEach((player) => {
-              playersMap[player.name] = {
-                name: player.name,
-                img: player.img,
-                fines: [],
-                totalFines: 0,
-                pendingCount: 0,
-              };
-            });
-
-            // Procesar las multas existentes
-            this.parsedData.forEach((fine) => {
-              const playerName = fine.jugador;
-              // Solo procesar si el jugador está en PLAYERS
-              if (playersMap[playerName]) {
-                // Solo agregar multas pendientes al array de multas
-                if (fine.status.toLowerCase() === "pendent") {
-                  playersMap[playerName].fines.push(fine);
-                  playersMap[playerName].pendingCount++;
-                }
-                // Sumar todas las multas al total (para el ordenamiento)
-                playersMap[playerName].totalFines += fine.precio;
-              }
-            });
-
-            // Retornar todos los jugadores ordenados por multa total
-            return Object.values(playersMap).sort(
-              (a, b) => b.totalFines - a.totalFines
-            );
-          },
-          reversedFilteredAllFines() {
-            return [...this.filteredAllFines].reverse()
-          },
-          filteredAllFines() {
-            return this.parsedData.filter((fine) => {
-              // Filtro por jugador
-              if (
-                this.filters.jugador &&
-                !fine.jugador
-                  .toLowerCase()
-                  .includes(this.filters.jugador.toLowerCase())
-              ) {
-                return false;
-              }
-
-              // Filtro por tipo de multa
-              if (
-                this.filters.tipodemulta &&
-                !fine.tipodemulta
-                  .toLowerCase()
-                  .includes(this.filters.tipodemulta.toLowerCase())
-              ) {
-                return false;
-              }
-
-              // Filtro por comentario
-              if (
-                this.filters.comment &&
-                !fine.comment
-                  .toLowerCase()
-                  .includes(this.filters.comment.toLowerCase())
-              ) {
-                return false;
-              }
-
-              // Filtro por estado
-              if (
-                this.filters.status &&
-                fine.status.toLowerCase() !== this.filters.status.toLowerCase()
-              ) {
-                return false;
-              }
-
-              // Filtro por fecha desde
-              if (
-                this.filters.fechaDesde &&
-                fine.fechacreacion < this.filters.fechaDesde
-              ) {
-                return false;
-              }
-
-              // Filtro por fecha hasta
-              if (
-                this.filters.fechaHasta &&
-                fine.fechacreacion > this.filters.fechaHasta
-              ) {
-                return false;
-              }
-
-              return true;
-            });
-          },
-
-          totalFilteredFines() {
-            return this.filteredAllFines.reduce(
-              (total, fine) => total + fine.precio,
-              0
-            );
-          },
-        },
-        methods: {
-          async load() {
-            this.loading = true;
-            this.error = "";
-            try {
-              const res = await fetch(CSV_URL, { cache: "no-store" });
-              if (!res.ok) throw new Error("HTTP " + res.status);
-              const text = await res.text();
-              const papa = Papa.parse(text, {
-                header: true,
-                skipEmptyLines: true,
-              });
-              this.parsedData = rowsToObjects(papa);
-            } catch (e) {
-              this.error = String(e);
-            } finally {
-              this.loading = false;
-            }
-          },
-          showPlayerDetails(player) {
-            this.selectedPlayer = player;
-          },
-          closePlayerDetails() {
-            this.selectedPlayer = null;
-          },
-          formatDateForDisplay(dateString) {
-            return dateString.slice(0, 10);
-          },
-
-          clearFilters() {
-            this.filters = {
-              jugador: "",
-              tipodemulta: "",
-              comment: "",
-              status: "Pendent",
-              fechaDesde: "",
-              fechaHasta: "",
+        createApp({
+          data() {
+            return {
+              loading: false,
+              error: "",
+              parsedData: [],
+              players: [],
+              normes: [],
+              selectedPlayer: null, // Para el popup de detalle
+              filters: {
+                jugador: "",
+                tipodemulta: "",
+                comment: "",
+                status: "pendent",
+                fechaDesde: "",
+                fechaHasta: "",
+              },
+              filtersVisible: false,
             };
           },
-          
-          toggleFilters() {
-            this.filtersVisible = !this.filtersVisible;
+          computed: {
+            playersWithFines() {
+              const playersMap = {};
+              this.players.forEach((player) => {
+                playersMap[player.Nom] = {
+                  name: player.Nom,
+                  img: player.Foto,
+                  fines: [],
+                  totalFines: 0,
+                  pendingCount: 0,
+                };
+              });
+
+              // Procesar las multas existentes
+              this.parsedData.forEach((fine) => {
+                const playerName = fine.jugador;
+                // Solo procesar si el jugador está en PLAYERS
+                if (playersMap[playerName]) {
+                  // Solo agregar multas pendientes al array de multas
+                  if (fine.status.toLowerCase() === "pendent") {
+                    playersMap[playerName].fines.push(fine);
+                    playersMap[playerName].pendingCount++;
+                  }
+                  // Sumar todas las multas al total (para el ordenamiento)
+                  playersMap[playerName].totalFines += fine.precio;
+                }
+              });
+
+              // Retornar todos los jugadores ordenados por multa total
+              return Object.values(playersMap).sort(
+                (a, b) => b.totalFines - a.totalFines
+              );
+            },
+            reversedFilteredAllFines() {
+              return [...this.filteredAllFines].reverse();
+            },
+            filteredAllFines() {
+              return this.parsedData.filter((fine) => {
+                // Filtro por jugador
+                if (
+                  this.filters.jugador &&
+                  !fine.jugador
+                    .toLowerCase()
+                    .includes(this.filters.jugador.toLowerCase())
+                ) {
+                  return false;
+                }
+
+                // Filtro por tipo de multa
+                if (
+                  this.filters.tipodemulta &&
+                  !fine.tipodemulta
+                    .toLowerCase()
+                    .includes(this.filters.tipodemulta.toLowerCase())
+                ) {
+                  return false;
+                }
+
+                // Filtro por comentario
+                if (
+                  this.filters.comment &&
+                  !fine.comment
+                    .toLowerCase()
+                    .includes(this.filters.comment.toLowerCase())
+                ) {
+                  return false;
+                }
+
+                // Filtro por estado
+                if (
+                  this.filters.status &&
+                  fine.status.toLowerCase() !==
+                    this.filters.status.toLowerCase()
+                ) {
+                  return false;
+                }
+
+                // Filtro por fecha desde
+                if (
+                  this.filters.fechaDesde &&
+                  fine.fechacreacion < this.filters.fechaDesde
+                ) {
+                  return false;
+                }
+
+                // Filtro por fecha hasta
+                if (
+                  this.filters.fechaHasta &&
+                  fine.fechacreacion > this.filters.fechaHasta
+                ) {
+                  return false;
+                }
+
+                return true;
+              });
+            },
+
+            totalFilteredFines() {
+              return this.filteredAllFines.reduce(
+                (total, fine) => total + fine.precio,
+                0
+              );
+            },
           },
-          
-          getAmountClass(amount) {
-            if (amount <= 10) return 'low';
-            if (amount <= 25) return 'medium';
-            if (amount <= 40) return 'high';
-            return 'critical';
+          methods: {
+            async loadNormes() {
+              try {
+                const res = await fetch(NORMES_URL);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const text = await res.text();
+                const papa = Papa.parse(text, {
+                  header: true,
+                  skipEmptyLines: true,
+                });
+                this.normes = papa.data;
+                console.log(this.normes);
+              } catch (e) {
+                this.error = String(e);
+              }
+            },
+            async loadPlayers() {
+              try {
+                const res = await fetch(JUGADORS_URL);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const text = await res.text();
+                const papa = Papa.parse(text, {
+                  header: true,
+                  skipEmptyLines: true,
+                });
+                this.players = papa.data;
+              } catch (e) {
+                this.error = String(e);
+              }
+            },
+            async load() {
+              this.loading = true;
+              this.error = "";
+              try {
+                const res = await fetch(MULTES_URL, { cache: "no-store" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const text = await res.text();
+                const papa = Papa.parse(text, {
+                  header: true,
+                  skipEmptyLines: true,
+                });
+                this.parsedData = rowsToObjects(papa);
+                await this.loadPlayers();
+                this.loadNormes();
+              } catch (e) {
+                this.error = String(e);
+              } finally {
+                this.loading = false;
+              }
+            },
+            showPlayerDetails(player) {
+              this.selectedPlayer = player;
+            },
+            closePlayerDetails() {
+              this.selectedPlayer = null;
+            },
+            formatDateForDisplay(dateString) {
+              return dateString.slice(0, 10);
+            },
+
+            clearFilters() {
+              this.filters = {
+                jugador: "",
+                tipodemulta: "",
+                comment: "",
+                status: "Pendent",
+                fechaDesde: "",
+                fechaHasta: "",
+              };
+            },
+
+            toggleFilters() {
+              this.filtersVisible = !this.filtersVisible;
+            },
+
+            getAmountClass(amount) {
+              if (amount <= 10) return "low";
+              if (amount <= 25) return "medium";
+              if (amount <= 40) return "high";
+              return "critical";
+            },
           },
-        },
-        mounted() {
-          this.load();
-        },
-      }).mount("#app");
-    </script>
+          async mounted() {
+            await this.load();
+            document.getElementById("app-content").style.visibility = "visible";
+          },
+        }).mount("#app");
+      </script>
+    </div>
   </body>
 </html>
