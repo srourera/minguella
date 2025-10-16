@@ -973,9 +973,8 @@
                   if (fine.status.toLowerCase() === "pendent") {
                     playersMap[playerName].fines.push(fine);
                     playersMap[playerName].pendingCount++;
+                    playersMap[playerName].totalFines += fine.precio;
                   }
-                  // Sumar todas las multas al total (para el ordenamiento)
-                  playersMap[playerName].totalFines += fine.precio;
                 }
               });
 
