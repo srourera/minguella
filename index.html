@@ -261,9 +261,9 @@
         gap: 5px;
         margin-bottom: 10px;
         font-size: 14px;
-        color: #6c757d;
         border-radius: 4px;
         padding: 10px;
+        color: #6c757d;
         border: 1px solid #e9ecef;
       }
 
@@ -465,7 +465,7 @@
 
       /* Estilos para el modal de nueva cena */
       .new-dinner-btn {
-        background: #28a745;
+        background: #007bff;
         color: white;
         border: none;
         padding: 12px 24px;
@@ -481,7 +481,7 @@
       }
 
       .new-dinner-btn:hover {
-        background: #218838;
+        background: #0056b3;
       }
 
       .dinner-modal-content {
@@ -563,8 +563,8 @@
       }
 
       .dinner-player-item.selected {
-        border-color: #28a745;
-        background: #f8fff9;
+        border-color: #007bff;
+        background: #f0f7ff;
       }
 
       .dinner-player-item.not-selected {
@@ -634,7 +634,7 @@
       }
 
       .dinner-confirm-btn {
-        background: #28a745;
+        background: #007bff;
         color: white;
         border: none;
         padding: 14px 28px;
@@ -647,12 +647,29 @@
       }
 
       .dinner-confirm-btn:hover {
-        background: #218838;
+        background: #0056b3;
       }
 
       .dinner-confirm-btn:disabled {
         background: #6c757d;
         cursor: not-allowed;
+      }
+
+      .admin-token-button-container {
+        display: flex;
+        justify-content: right;
+      }
+
+      .admin-token-button {
+        border-radius: 4px;
+        padding: 3px 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #6c757d;
+        border: 1px solid #e9ecef;
+        width: 50px;
+        text-align: center;
+        margin-right: 10px;
       }
 
       @media (max-width: 768px) {
@@ -1234,11 +1251,13 @@
 
               <!-- Botón confirmar -->
               <button
+                v-if="!!adminToken"
                 @click="confirmDinner"
                 class="dinner-confirm-btn"
-                :disabled="!canConfirmDinner"
+                :disabled="!canConfirmDinner || confirmingDinner"
               >
-                Confirmar cena y marcar multas como pagadas
+                <span v-if="confirmingDinner">⏳ Cargando...</span>
+                <span v-else>Confirmar cena y marcar multas como pagadas</span>
               </button>
             </div>
           </div>
@@ -1252,6 +1271,9 @@
               <span class="exception">Excepció: {{ norma.Excepcio }}</span>
             </div>
           </div>
+        </div>
+        <div class="admin-token-button-container">
+          <div class="admin-token-button" @click="setAdminToken">Admin</div>
         </div>
       </div>
       <!-- PapaParse para CSV robusto -->
@@ -1332,6 +1354,8 @@
               // Datos para el modal de cena
               showDinnerModal: false,
               dinnerPricePerPerson: 30,
+              adminToken: localStorage.getItem("admin-token"),
+              confirmingDinner: false,
               selectedDinnerPlayerNames: [], // Array de nombres de jugadores seleccionados
             };
           },
@@ -1636,11 +1660,19 @@
               }
               return this.dinnerExtraPerPerson;
             },
+            setAdminToken() {
+              const token = prompt("Introduce el token de admin:");
+              if (token) {
+                localStorage.setItem("admin-token", token);
+                this.adminToken = token;
+              }
+            },
             async confirmDinner() {
-              if (!this.canConfirmDinner) {
+              if (!this.canConfirmDinner || this.confirmingDinner) {
                 return;
               }
 
+              this.confirmingDinner = true;
               try {
                 const response = await fetch(
                   "https://n8n.ridaflows.com/webhook/minguella/marcar-multas-pagadas",
@@ -1648,6 +1680,7 @@
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
+                      "x-authorization": this.adminToken,
                     },
                     body: JSON.stringify({
                       jugadores: this.selectedDinnerPlayerNames,
@@ -1656,17 +1689,16 @@
                 );
 
                 if (!response.ok) {
-                  throw new Error("Error al confirmar la cena");
+                  throw new Error(await response.text());
+                } else {
+                  this.closeDinnerModal();
+                  window.location.reload();
                 }
-
-                // Cerrar el popup
-                this.closeDinnerModal();
-
-                // Recargar la página
-                window.location.reload();
               } catch (error) {
                 this.error = `Error al confirmar la cena: ${error.message}`;
                 alert(this.error);
+              } finally {
+                this.confirmingDinner = false;
               }
             },
           },
