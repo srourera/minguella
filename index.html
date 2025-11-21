@@ -463,6 +463,198 @@
         background: #5a6268;
       }
 
+      /* Estilos para el modal de nueva cena */
+      .new-dinner-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 30px 0 20px 0;
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .new-dinner-btn:hover {
+        background: #218838;
+      }
+
+      .dinner-modal-content {
+        background: white;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dinner-modal-content .modal-body {
+        max-height: unset;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .dinner-input-group {
+        margin-bottom: 20px;
+      }
+
+      .dinner-input-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #495057;
+      }
+
+      .dinner-input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 16px;
+        max-width: 200px;
+      }
+
+      .dinner-input-group input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+
+      .dinner-help-text {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 15px;
+        font-style: italic;
+      }
+
+      .dinner-players-list {
+        margin-bottom: 20px;
+      }
+
+      .dinner-player-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+      }
+
+      .dinner-player-item .player-avatar {
+        width: 40px;
+        height: 40px;
+      }
+
+      .dinner-player-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .dinner-player-item.selected {
+        border-color: #28a745;
+        background: #f8fff9;
+      }
+
+      .dinner-player-item.not-selected {
+        border: none;
+        background: #e9ecef;
+        opacity: 0.6;
+      }
+
+      .dinner-player-item.not-selected img {
+        filter: grayscale(100%);
+      }
+
+      .dinner-player-item.not-selected .player-name,
+      .dinner-player-item.not-selected .amount {
+        color: #6c757d;
+      }
+
+      .dinner-results {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .dinner-results-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .dinner-results-row:last-child {
+        border-bottom: none;
+      }
+
+      .dinner-results-label {
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .dinner-results-value {
+        font-weight: 700;
+        color: #333;
+      }
+
+      .dinner-player-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      .dinner-player-table th,
+      .dinner-player-table td {
+        padding: 6px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .dinner-player-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .dinner-player-table tbody tr:hover {
+        background: #f8f9fa;
+      }
+
+      .dinner-confirm-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      .dinner-confirm-btn:hover {
+        background: #218838;
+      }
+
+      .dinner-confirm-btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
       @media (max-width: 768px) {
         #app {
           padding: 15px;
@@ -641,6 +833,29 @@
           padding: 4px 8px;
           font-size: 11px;
         }
+
+        .dinner-input-group input {
+          max-width: 100%;
+        }
+
+        .dinner-player-item {
+          padding: 10px;
+        }
+
+        .dinner-results-row {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .dinner-player-table {
+          font-size: 12px;
+        }
+
+        .dinner-player-table th,
+        .dinner-player-table td {
+          padding: 8px 6px;
+          font-size: 12px;
+        }
       }
     </style>
   </head>
@@ -678,6 +893,11 @@
             </div>
           </div>
         </div>
+
+        <!-- Botón Nueva Cena -->
+        <button @click="openDinnerModal" class="new-dinner-btn">
+          🍽️ Nueva cena
+        </button>
 
         <!-- Listado de todas las multas con filtros -->
         <div class="all-fines-section">
@@ -864,6 +1084,166 @@
           </div>
         </div>
 
+        <!-- Modal Nueva Cena -->
+        <div
+          v-if="showDinnerModal"
+          class="modal-overlay"
+          @click="closeDinnerModal"
+        >
+          <div class="dinner-modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>Nueva Cena</h3>
+              <button class="close-btn" @click="closeDinnerModal">
+                &times;
+              </button>
+            </div>
+            <div class="modal-body">
+              <!-- Input Precio por persona -->
+              <div class="dinner-input-group">
+                <label>Precio por persona (€)</label>
+                <input
+                  v-model.number="dinnerPricePerPerson"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="Ej: 30"
+                  required
+                />
+              </div>
+
+              <!-- Listado de jugadores -->
+              <h4 style="margin-top: 20px; margin-bottom: 10px">Jugadores</h4>
+              <p class="dinner-help-text">
+                Haz click para cambiar quién asiste a la cena
+              </p>
+
+              <div class="dinner-players-list">
+                <!-- Jugadores seleccionados -->
+                <div
+                  v-for="player in selectedDinnerPlayers"
+                  :key="player.name"
+                  class="dinner-player-item selected"
+                  @click="toggleDinnerPlayer(player.name)"
+                >
+                  <div class="player-info">
+                    <img
+                      :src="player.img"
+                      :alt="player.name"
+                      class="player-avatar"
+                    />
+                    <span class="player-name">{{ player.name }}</span>
+                  </div>
+                  <div class="total-fines">
+                    <span class="amount"
+                      >{{ player.totalFines.toFixed(2) }} €</span
+                    >
+                  </div>
+                </div>
+
+                <!-- Jugadores no seleccionados -->
+                <div
+                  v-for="player in unselectedDinnerPlayers"
+                  :key="player.name"
+                  class="dinner-player-item not-selected"
+                  @click="toggleDinnerPlayer(player.name)"
+                >
+                  <div class="player-info">
+                    <img
+                      :src="player.img"
+                      :alt="player.name"
+                      class="player-avatar"
+                    />
+                    <span class="player-name">{{ player.name }}</span>
+                  </div>
+                  <div class="total-fines">
+                    <span class="amount"
+                      >{{ player.totalFines.toFixed(2) }} €</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resultados dinámicos -->
+              <div class="dinner-results">
+                <div class="dinner-results-row">
+                  <span class="dinner-results-label">Total de multas:</span>
+                  <span class="dinner-results-value"
+                    >{{ totalDinnerFines.toFixed(2) }} €</span
+                  >
+                </div>
+                <div class="dinner-results-row">
+                  <span class="dinner-results-label">Total de la cena:</span>
+                  <span class="dinner-results-value"
+                    >{{ totalDinnerCost.toFixed(2) }} €</span
+                  >
+                </div>
+                <div class="dinner-results-row">
+                  <span class="dinner-results-label"
+                    >Importe de cena pendiente:</span
+                  >
+                  <span
+                    class="dinner-results-value"
+                    :style="dinnerPendingStyle"
+                  >
+                    {{ dinnerPendingText }}
+                  </span>
+                </div>
+                <div class="dinner-results-row">
+                  <span class="dinner-results-label"
+                    >Importe extra por persona:</span
+                  >
+                  <span
+                    class="dinner-results-value"
+                    :style="dinnerExtraPerPersonStyle"
+                  >
+                    {{ dinnerExtraPerPersonText }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tabla por jugador -->
+              <h4 style="margin-top: 20px; margin-bottom: 10px">
+                Listado por jugador
+              </h4>
+              <table class="dinner-player-table">
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Multa</th>
+                    <th>Cena extra por persona</th>
+                    <th>Total a pagar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="player in selectedDinnerPlayers"
+                    :key="player.name"
+                  >
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.totalFines.toFixed(2) }} €</td>
+                    <td>{{ getExtraPerPerson(player.name).toFixed(2) }} €</td>
+                    <td>
+                      <strong
+                        >{{ ( player.totalFines + getExtraPerPerson(player.name)
+                        ).toFixed(2) }} €</strong
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Botón confirmar -->
+              <button
+                @click="confirmDinner"
+                class="dinner-confirm-btn"
+                :disabled="!canConfirmDinner"
+              >
+                Confirmar cena y marcar multas como pagadas
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="normes-section">
           <h3>Normes</h3>
           <div v-for="(norma, index) in normes" :key="index" class="norma">
@@ -949,6 +1329,10 @@
                 fechaHasta: "",
               },
               filtersVisible: false,
+              // Datos para el modal de cena
+              showDinnerModal: false,
+              dinnerPricePerPerson: 30,
+              selectedDinnerPlayerNames: [], // Array de nombres de jugadores seleccionados
             };
           },
           computed: {
@@ -1053,6 +1437,90 @@
                 0
               );
             },
+            // Computed para jugadores de cena
+            selectedDinnerPlayers() {
+              return this.playersWithFines
+                .filter((p) => this.selectedDinnerPlayerNames.includes(p.name))
+                .sort((a, b) => b.totalFines - a.totalFines);
+            },
+            unselectedDinnerPlayers() {
+              return this.playersWithFines.filter(
+                (p) => !this.selectedDinnerPlayerNames.includes(p.name)
+              );
+            },
+            // Cálculos de cena
+            totalDinnerFines() {
+              return this.selectedDinnerPlayers.reduce(
+                (total, player) => total + player.totalFines,
+                0
+              );
+            },
+            totalDinnerCost() {
+              if (
+                !this.dinnerPricePerPerson ||
+                this.selectedDinnerPlayers.length === 0
+              ) {
+                return 0;
+              }
+              return (
+                this.dinnerPricePerPerson * this.selectedDinnerPlayers.length
+              );
+            },
+            dinnerPendingAmount() {
+              return this.totalDinnerCost - this.totalDinnerFines;
+            },
+            dinnerPendingText() {
+              const amount = Math.abs(this.dinnerPendingAmount);
+              if (this.dinnerPendingAmount > 0) {
+                return `Faltan ${amount.toFixed(2)}€`;
+              } else if (this.dinnerPendingAmount < 0) {
+                return `Sobran ${amount.toFixed(2)}€`;
+              }
+              return "0.00€";
+            },
+            dinnerPendingStyle() {
+              if (this.dinnerPendingAmount > 0) {
+                return { color: "#dc3545" };
+              } else if (this.dinnerPendingAmount < 0) {
+                return { color: "#28a745" };
+              }
+              return { color: "#333" };
+            },
+            dinnerExtraPerPerson() {
+              if (this.selectedDinnerPlayers.length === 0) {
+                return 0;
+              }
+              const extra =
+                this.dinnerPendingAmount / this.selectedDinnerPlayers.length;
+              // Redondear siempre a la alza a 1 decimal
+              return Math.ceil(extra * 10) / 10;
+            },
+            dinnerExtraPerPersonText() {
+              const amount = Math.abs(this.dinnerExtraPerPerson);
+              if (this.dinnerExtraPerPerson > 0) {
+                return `Faltan ${Number(amount.toFixed(1)).toFixed(
+                  2
+                )}€ por persona`;
+              } else if (this.dinnerExtraPerPerson < 0) {
+                return `Sobran ${amount.toFixed(2)}€ por persona`;
+              }
+              return "0.0€ por persona";
+            },
+            dinnerExtraPerPersonStyle() {
+              if (this.dinnerExtraPerPerson > 0) {
+                return { color: "#dc3545" };
+              } else if (this.dinnerExtraPerPerson < 0) {
+                return { color: "#28a745" };
+              }
+              return { color: "#333" };
+            },
+            canConfirmDinner() {
+              return (
+                this.dinnerPricePerPerson &&
+                this.dinnerPricePerPerson > 0 &&
+                this.selectedDinnerPlayers.length > 0
+              );
+            },
           },
           methods: {
             async loadNormes() {
@@ -1133,6 +1601,73 @@
               if (amount <= 25) return "medium";
               if (amount <= 40) return "high";
               return "critical";
+            },
+            // Métodos para el modal de cena
+            openDinnerModal() {
+              // Inicializar con todos los jugadores seleccionados
+              if (this.selectedDinnerPlayerNames?.length === 0)
+                this.selectedDinnerPlayerNames = this.playersWithFines.map(
+                  (p) => p.name
+                );
+              if (!this.dinnerPricePerPerson) this.dinnerPricePerPerson = 30;
+              this.showDinnerModal = true;
+              // Quitar el scroll del body cuando se abre el modal
+              document.body.style.overflow = "hidden";
+            },
+            closeDinnerModal() {
+              this.showDinnerModal = false;
+              // Restaurar el scroll del body cuando se cierra el modal
+              document.body.style.overflow = "";
+            },
+            toggleDinnerPlayer(playerName) {
+              const index = this.selectedDinnerPlayerNames.indexOf(playerName);
+              if (index > -1) {
+                // Deseleccionar
+                this.selectedDinnerPlayerNames.splice(index, 1);
+              } else {
+                // Seleccionar
+                this.selectedDinnerPlayerNames.push(playerName);
+              }
+            },
+            getExtraPerPerson(playerName) {
+              // Si el extra es negativo, retornar 0
+              if (this.dinnerExtraPerPerson < 0) {
+                return 0;
+              }
+              return this.dinnerExtraPerPerson;
+            },
+            async confirmDinner() {
+              if (!this.canConfirmDinner) {
+                return;
+              }
+
+              try {
+                const response = await fetch(
+                  "https://n8n.ridaflows.com/webhook/minguella/marcar-multas-pagadas",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      jugadores: this.selectedDinnerPlayerNames,
+                    }),
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error("Error al confirmar la cena");
+                }
+
+                // Cerrar el popup
+                this.closeDinnerModal();
+
+                // Recargar la página
+                window.location.reload();
+              } catch (error) {
+                this.error = `Error al confirmar la cena: ${error.message}`;
+                alert(this.error);
+              }
             },
           },
           async mounted() {
