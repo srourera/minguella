@@ -630,7 +630,7 @@ createApp({
       if (!this.requireApiKey()) return;
       this.savingPlayer = true;
       try {
-        await apiWrite(ENDPOINTS.playerById(p.id), 'PATCH', {
+        await apiWrite(ENDPOINTS.playerById(p.id), 'POST', {
           name: this.editPlayerForm.name,
           picture: this.editPlayerForm.picture || null,
         }, this.apiKey);
@@ -653,7 +653,7 @@ createApp({
     async disablePlayer(p) {
       this.confirmTarget = null;
       try {
-        await apiWrite(ENDPOINTS.playerDisable(p.id), 'PATCH', {}, this.apiKey);
+        await apiWrite(ENDPOINTS.playerDisable(p.id), 'POST', {}, this.apiKey);
         this.showToast('success', `${p.name} desactivat.`);
         await this.init();
       } catch (e) {
@@ -690,7 +690,7 @@ createApp({
       if (!this.requireApiKey()) return;
       this.savingTipo = true;
       try {
-        await apiWrite(ENDPOINTS.tipoById(t.id), 'PATCH', {
+        await apiWrite(ENDPOINTS.tipoById(t.id), 'POST', {
           tipo_multa: this.editTipoForm.tipo_multa,
           descripcion: this.editTipoForm.descripcion || null,
         }, this.apiKey);
@@ -713,7 +713,7 @@ createApp({
     async disableTipo(t) {
       this.confirmTarget = null;
       try {
-        await apiWrite(ENDPOINTS.tipoDisable(t.id), 'PATCH', {}, this.apiKey);
+        await apiWrite(ENDPOINTS.tipoDisable(t.id), 'POST', {}, this.apiKey);
         this.showToast('success', `${t.tipo_multa} desactivat.`);
         await this.init();
       } catch (e) {
