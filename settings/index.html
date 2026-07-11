@@ -235,6 +235,34 @@
   .modal-box p{ font-size:13.5px; color:var(--muted); margin:0 0 16px; font-family:'Inter',sans-serif; text-transform:none; }
 
   :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
+
+  .wizard-card{
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:10px 8px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .wizard-card:hover{ border-color:var(--navy); background:var(--bg); }
+  .wizard-card.selected{ border-color:var(--navy); background:#EEF1F8; }
+  .wizard-card-wide{ width:100%; text-align:left; padding:12px; }
+
+  .wizard-amount-btn{
+    background:var(--bg);
+    border:2px solid var(--border);
+    border-radius:10px;
+    padding:14px 8px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:15px;
+    color:var(--navy-deep);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .wizard-amount-btn:hover{ border-color:var(--orange); background:#fff; }
+  .wizard-amount-btn:disabled{ opacity:0.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -278,6 +306,7 @@
   <template v-else>
 
   <div class="tabs">
+    <button :class="{active: activeTab==='multes'}" @click="activeTab='multes'">Multes</button>
     <button :class="{active: activeTab==='jugadors'}" @click="activeTab='jugadors'">Jugadors</button>
     <button :class="{active: activeTab==='tipos'}" @click="activeTab='tipos'">Tipus de multa</button>
   </div>
@@ -285,6 +314,38 @@
   <div class="wrap">
 
     <div v-if="error" class="error-banner">{{ error }}</div>
+
+    <!-- ================= MULTES ================= -->
+    <div v-if="activeTab === 'multes'">
+
+      <div class="actions-row" style="justify-content:flex-start; margin-bottom:16px;">
+        <button class="btn btn-primary" @click="openCreateWizard">+ Afegir multa</button>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2 style="margin-bottom:0">Últimes multes</h2>
+        </div>
+
+        <div v-if="loadingMultas" class="state-box">Carregant…</div>
+        <div v-else-if="recentMultas.length === 0" class="state-box">
+          <span class="emoji">🧾</span>
+          Encara no hi ha multes registrades.
+        </div>
+
+        <div v-else>
+          <div v-for="fine in recentMultas" :key="fine.id" class="list-item">
+            <div class="item-main">
+              <div class="item-title mono">{{ formatMoney(fine.amount) }}</div>
+              <div class="item-sub">{{ fine.playerName }} · {{ fine.tipoNombre }}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-ghost btn-sm" @click="openEditWizard(fine)">Editar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ================= JUGADORS ================= -->
     <div v-if="activeTab === 'jugadors'">
@@ -432,6 +493,89 @@
 
   </template>
 
+  <!-- Wizard afegir / editar multa -->
+  <div v-if="wizard.open" class="modal-overlay" @click="closeWizard">
+    <div class="modal-box" @click.stop style="max-width:460px;">
+
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <button v-if="wizard.step > 1" class="btn btn-ghost btn-sm" @click="wizardBack">← Enrere</button>
+        <h3 style="margin:0; flex:1;">
+          {{ wizard.mode === 'edit' ? 'Editar multa' : 'Afegir multa' }}
+          <span style="font-size:12px; color:var(--muted); text-transform:none; display:block; font-weight:400;">Pas {{ wizard.step }} de 3</span>
+        </h3>
+        <button class="modal-close" style="background:var(--bg); color:var(--muted);" @click="closeWizard">✕</button>
+      </div>
+
+      <!-- Pas 1: jugador -->
+      <div v-if="wizard.step === 1">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-height:50vh; overflow-y:auto;">
+          <button
+            v-for="p in activePlayers"
+            :key="p.id"
+            class="wizard-card"
+            :class="{selected: wizard.playerId === p.id}"
+            @click="selectWizardPlayer(p)"
+          >
+            <img class="avatar" :src="p.picture || fallbackAvatar" @error="onImgError" style="width:44px;height:44px;margin:0 auto 6px;" />
+            <div style="font-size:12.5px; font-weight:600; text-align:center;">{{ p.name }}</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pas 2: tipus de multa -->
+      <div v-if="wizard.step === 2">
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
+          <button
+            v-for="t in activeTiposMulta"
+            :key="t.id"
+            class="wizard-card wizard-card-wide"
+            :class="{selected: wizard.tipoId === t.id}"
+            @click="selectWizardTipo(t)"
+          >
+            <div style="font-weight:600; font-size:14px;">{{ t.tipo_multa }}</div>
+            <div v-if="t.descripcion" style="font-size:12px; color:var(--muted); margin-top:2px;">{{ t.descripcion }}</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pas 3: import -->
+      <div v-if="wizard.step === 3">
+
+        <!-- Mode crear: botons preestablerts -->
+        <div v-if="wizard.mode === 'create'">
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+            <button
+              v-for="amt in wizardAmountOptions"
+              :key="amt"
+              class="wizard-amount-btn"
+              :disabled="wizard.saving"
+              @click="createMulta(amt)"
+            >
+              {{ amt }}€
+            </button>
+            <button v-if="!wizard.showAllAmounts" class="wizard-amount-btn" @click="wizard.showAllAmounts = true">
+              Més
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode editar: input lliure -->
+        <div v-else>
+          <div class="field">
+            <label>Import (€)</label>
+            <input type="number" step="0.01" v-model.number="wizard.amount" placeholder="Ex: 7.5" />
+          </div>
+          <div class="actions-row">
+            <button class="btn btn-primary" :disabled="wizard.saving || !wizard.amount" @click="saveEditedMulta">
+              {{ wizard.saving ? 'Desant…' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Confirmació de desactivació -->
   <div v-if="confirmTarget" class="modal-overlay" @click="confirmTarget = null">
     <div class="modal-box" @click.stop>
@@ -466,6 +610,9 @@ const ENDPOINTS = {
   tipos: `${N8N_BASE_URL}/tipos-multa`,
   tipoEdit: `${N8N_BASE_URL}/tipos-multa/edit`,
   tipoDisable: `${N8N_BASE_URL}/tipos-multa/disable`,
+  multas: `${N8N_BASE_URL}/multas`,
+  multaCreate: `${N8N_BASE_URL}/multas`,
+  multaEdit: `${N8N_BASE_URL}/multas/edit`,
 };
 const API_KEY_STORAGE = "minguella-admin-key";
 // ======================================================================
@@ -514,14 +661,28 @@ createApp({
     return {
       apiKey: localStorage.getItem(API_KEY_STORAGE) || '',
       keyInput: '',
-      activeTab: 'jugadors',
+      activeTab: 'multes',
       loading: true,
       error: '',
 
       players: [],
       tiposMulta: [],
+      multas: [],
+      loadingMultas: false,
       showDisabledPlayers: false,
       showDisabledTipos: false,
+
+      wizard: {
+        open: false,
+        mode: 'create',   // 'create' | 'edit'
+        step: 1,
+        playerId: null,
+        tipoId: null,
+        amount: null,
+        editingMultaId: null,
+        showAllAmounts: false,
+        saving: false,
+      },
 
       newPlayer: { name: '', picture: '' },
       newTipo: { tipo_multa: '', descripcion: '' },
@@ -542,29 +703,54 @@ createApp({
   },
 
   computed: {
+    activePlayers() {
+      return this.players.filter(p => !p.disabled_at);
+    },
+    activeTiposMulta() {
+      return this.tiposMulta.filter(t => !t.disabled_at);
+    },
     visiblePlayers() {
       return this.players.filter(p => this.showDisabledPlayers || !p.disabled_at);
     },
     visibleTipos() {
       return this.tiposMulta.filter(t => this.showDisabledTipos || !t.disabled_at);
     },
+    wizardAmountOptions() {
+      return this.wizard.showAllAmounts
+        ? Array.from({ length: 20 }, (_, i) => i + 1)
+        : [1, 2, 3, 4, 5, 10, 15, 20];
+    },
+    recentMultas() {
+      return [...this.multas]
+        .sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
+        .slice(0, 20)
+        .map(m => ({
+          ...m,
+          playerName: (this.players.find(p => p.id === m.player_id) || {}).name || `Jugador #${m.player_id}`,
+          tipoNombre: (this.tiposMulta.find(t => t.id === m.tipo_multa_id) || {}).tipo_multa || `Tipus #${m.tipo_multa_id}`,
+        }));
+    },
   },
 
   methods: {
     async init() {
       this.loading = true;
+      this.loadingMultas = true;
       this.error = '';
       try {
-        const [players, tiposMulta] = await Promise.all([
+        const [players, tiposMulta, multas] = await Promise.all([
           apiGet(ENDPOINTS.players),
           apiGet(ENDPOINTS.tipos),
+          apiGet(ENDPOINTS.multas),
         ]);
         this.players = players;
         this.tiposMulta = tiposMulta;
+        this.multas = multas;
       } catch (e) {
         this.error = `No s'han pogut carregar les dades: ${e.message}`;
       } finally {
         this.loading = false;
+        this.loadingMultas = false;
       }
     },
 
@@ -720,6 +906,75 @@ createApp({
         await this.init();
       } catch (e) {
         this.showToast('error', e.message);
+      }
+    },
+
+    // ---------- Wizard multes ----------
+    openCreateWizard() {
+      if (!this.requireApiKey()) return;
+      this.wizard = {
+        open: true, mode: 'create', step: 1,
+        playerId: null, tipoId: null, amount: null,
+        editingMultaId: null, showAllAmounts: false, saving: false,
+      };
+    },
+    openEditWizard(fine) {
+      if (!this.requireApiKey()) return;
+      this.wizard = {
+        open: true, mode: 'edit', step: 1,
+        playerId: fine.player_id, tipoId: fine.tipo_multa_id, amount: fine.amount,
+        editingMultaId: fine.id, showAllAmounts: false, saving: false,
+      };
+    },
+    closeWizard() {
+      this.wizard.open = false;
+    },
+    wizardBack() {
+      if (this.wizard.step > 1) this.wizard.step -= 1;
+    },
+    selectWizardPlayer(p) {
+      this.wizard.playerId = p.id;
+      this.wizard.step = 2;
+    },
+    selectWizardTipo(t) {
+      this.wizard.tipoId = t.id;
+      this.wizard.step = 3;
+    },
+    async createMulta(amount) {
+      if (this.wizard.saving) return;
+      this.wizard.saving = true;
+      try {
+        await apiWrite(ENDPOINTS.multaCreate, 'POST', {
+          player_id: this.wizard.playerId,
+          tipo_multa_id: this.wizard.tipoId,
+          amount: amount,
+        }, this.apiKey);
+        this.closeWizard();
+        this.showToast('success', `Multa de ${amount}€ afegida.`);
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.wizard.saving = false;
+      }
+    },
+    async saveEditedMulta() {
+      if (this.wizard.saving || !this.wizard.amount) return;
+      this.wizard.saving = true;
+      try {
+        await apiWrite(ENDPOINTS.multaEdit, 'POST', {
+          id: this.wizard.editingMultaId,
+          player_id: this.wizard.playerId,
+          tipo_multa_id: this.wizard.tipoId,
+          amount: this.wizard.amount,
+        }, this.apiKey);
+        this.closeWizard();
+        this.showToast('success', 'Multa actualitzada.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.wizard.saving = false;
       }
     },
 
