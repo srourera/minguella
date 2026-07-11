@@ -324,7 +324,9 @@
         />
       </div>
       <div class="actions-row">
-        <button class="btn btn-primary" :disabled="!keyInput" @click="saveApiKey">Guardar i entrar</button>
+        <button class="btn btn-primary" :disabled="!keyInput || checkingKey" @click="saveApiKey">
+          {{ checkingKey ? 'Comprovant…' : 'Guardar i entrar' }}
+        </button>
       </div>
     </div>
   </div>
@@ -655,6 +657,7 @@ const ENDPOINTS = {
   multaCreate: `${N8N_BASE_URL}/multas`,
   multaEdit: `${N8N_BASE_URL}/multas/edit`,
   multasEstado: `${N8N_BASE_URL}/multas/estado`,
+  authCheck: `${N8N_BASE_URL}/auth/check`,
 };
 const API_KEY_STORAGE = "minguella-admin-key";
 // ======================================================================
@@ -703,6 +706,7 @@ createApp({
     return {
       apiKey: localStorage.getItem(API_KEY_STORAGE) || '',
       keyInput: '',
+      checkingKey: false,
       activeTab: 'multes',
       loading: true,
       error: '',
@@ -797,13 +801,22 @@ createApp({
       }
     },
 
-    saveApiKey() {
-      if (!this.keyInput) return;
-      this.apiKey = this.keyInput.trim();
-      localStorage.setItem(API_KEY_STORAGE, this.apiKey);
-      this.keyInput = '';
-      this.showToast('success', 'Clau desada.');
-      this.init();
+    async saveApiKey() {
+      if (!this.keyInput || this.checkingKey) return;
+      const candidate = this.keyInput.trim();
+      this.checkingKey = true;
+      try {
+        await apiWrite(ENDPOINTS.authCheck, 'POST', {}, candidate);
+        this.apiKey = candidate;
+        localStorage.setItem(API_KEY_STORAGE, this.apiKey);
+        this.keyInput = '';
+        this.showToast('success', 'Clau desada.');
+        this.init();
+      } catch (e) {
+        this.showToast('error', 'Clau incorrecta.');
+      } finally {
+        this.checkingKey = false;
+      }
     },
 
     changeApiKey() {
