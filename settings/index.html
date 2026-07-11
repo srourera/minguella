@@ -83,8 +83,8 @@
 
   .tabs{
     display:flex;
-    gap:8px;
-    padding:10px 16px;
+    gap:6px;
+    padding:10px 12px;
     background:var(--navy-deep);
     position:sticky;
     top:70px;
@@ -96,11 +96,12 @@
     color:#dfe4f0;
     border:1px solid rgba(255,255,255,0.18);
     border-radius:999px;
-    padding:9px 14px;
-    font-size:13.5px;
+    padding:8px 6px;
+    font-size:12px;
     font-weight:600;
     cursor:pointer;
     font-family:'Inter',sans-serif;
+    white-space:nowrap;
   }
   .tabs button.active{
     background:var(--amber);
@@ -237,6 +238,8 @@
 
   :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
 
+  [v-cloak]{ display:none; }
+
   .status-dot{
     width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto;
   }
@@ -288,14 +291,16 @@
 </style>
 </head>
 <body>
-<div id="app">
+<div id="app" v-cloak>
 
   <div class="topbar">
-    <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
-    <div class="brand">
-      <span class="club">AE MINGUELLA</span>
-      <span class="sub">Administració · Jugadors i Multes</span>
-    </div>
+    <a href="/minguella" style="display:flex; align-items:center; gap:12px; flex:1; text-decoration:none; color:inherit; min-width:0;">
+      <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
+      <div class="brand">
+        <span class="club">AE MINGUELLA</span>
+        <span class="sub">Administració · Jugadors i Multes</span>
+      </div>
+    </a>
     <button v-if="apiKey" class="key-btn" @click="changeApiKey">
       <span class="dot ok"></span>
       Clau API
