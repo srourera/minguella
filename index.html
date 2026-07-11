@@ -1,1714 +1,902 @@
 <!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <title>Multes Minguella - Senior A</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        margin: 0;
-        padding: 20px;
-        background-color: #f5f5f5;
-      }
-
-      #app {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        color: #333;
-        text-align: center;
-        margin-bottom: 30px;
-      }
-
-      button {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        margin-bottom: 20px;
-      }
-
-      button:hover {
-        background: #0056b3;
-      }
-
-      button:disabled {
-        background: #6c757d;
-        cursor: not-allowed;
-      }
-
-      .error {
-        color: #dc3545;
-        background: #f8d7da;
-        padding: 10px;
-        border-radius: 4px;
-        margin: 10px 0;
-      }
-
-      /* Tabla de jugadores */
-      .players-table {
-        margin-top: 20px;
-      }
-
-      .player-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: white;
-      }
-
-      .player-row:hover {
-        background: #f8f9fa;
-        border-color: #007bff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-      }
-
-      .player-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .player-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #e9ecef;
-      }
-
-      .player-name {
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-      }
-
-      .total-fines {
-        text-align: right;
-      }
-
-      .amount {
-        font-size: 20px;
-        font-weight: 700;
-        display: block;
-      }
-
-      .amount.low {
-        color: #6c757d; /* Gris para 0-10€ */
-      }
-
-      .amount.medium {
-        color: #ffc107; /* Amarillo para 11-25€ */
-      }
-
-      .amount.high {
-        color: #fd7e14; /* Naranja para 26-40€ */
-      }
-
-      .amount.critical {
-        color: #dc3545; /* Rojo para 41€+ */
-      }
-
-      .count {
-        font-size: 14px;
-        color: #6c757d;
-      }
-
-      /* Modal/Popup */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-      }
-
-      .modal-content {
-        background: white;
-        border-radius: 8px;
-        width: 80%;
-        max-width: 80%;
-        max-height: 90vh;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      }
-
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        border-bottom: 1px solid #e9ecef;
-        background: #f8f9fa;
-      }
-
-      .modal-header h3 {
-        margin: 0;
-        color: #333;
-      }
-
-      .close-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #6c757d;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-      }
-
-      .close-btn:hover {
-        background: #e9ecef;
-        color: #333;
-      }
-
-      .modal-body {
-        padding: 20px;
-        overflow-y: auto;
-        max-height: 60vh;
-      }
-
-      /* Tabla de multas */
-      .fines-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-      }
-
-      .fines-table th,
-      .fines-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      .fines-table th {
-        background: #f8f9fa;
-        font-weight: 600;
-        color: #495057;
-      }
-
-      .fines-table tbody tr:hover {
-        background: #f8f9fa;
-      }
-
-      .status {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-      }
-
-      .status.pendent {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .status.pagada {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      .status.anulada {
-        background: #f8d7da;
-        color: #721c24;
-      }
-
-      .total {
-        font-size: 18px;
-        color: #dc3545;
-      }
-
-      /* Tabla de todas las multas con filtros */
-      .all-fines-section,
-      .normes-section {
-        margin-top: 40px;
-        padding: 0 10px;
-      }
-
-      .norma {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        margin-bottom: 10px;
-        font-size: 14px;
-        border-radius: 4px;
-        padding: 10px;
-        color: #6c757d;
-        border: 1px solid #e9ecef;
-      }
-
-      .norma .exception {
-        font-size: 10px;
-        color: #721c24;
-        border-radius: 10px;
-        padding: 2px 5px;
-        border: 1px solid #daacaf;
-        background: #f8d7da;
-        min-width: 75px;
-      }
-
-      .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .section-header h3 {
-        margin: 0;
-      }
-
-      .toggle-filters-btn {
-        background: transparent;
-        color: #6c757d;
-        border: 1px solid #dee2e6;
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        background: #f8f9fa;
-      }
-
-      .toggle-filters-btn:hover {
-        background: #e9ecef;
-        border-color: #adb5bd;
-        color: #495057;
-      }
-
-      .toggle-filters-btn.expanded {
-        background: #007bff;
-        color: white;
-        border-color: #007bff;
-      }
-
-      .toggle-filters-btn.expanded:hover {
-        background: #0056b3;
-        border-color: #0056b3;
-      }
-
-      .filters-container {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        align-items: center;
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        transition: all 0.3s ease;
-      }
-
-      .filters-container.visible {
-        max-height: 200px;
-        opacity: 1;
-        margin-bottom: 20px;
-      }
-
-      .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-
-      .filter-group label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #495057;
-      }
-
-      .filter-group input,
-      .filter-group select {
-        padding: 8px 12px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        font-size: 14px;
-        min-width: 120px;
-      }
-
-      .filter-group input:focus,
-      .filter-group select:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-      }
-
-      .all-fines-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .table-container {
-        overflow-x: auto;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
-      }
-
-      .all-fines-table th,
-      .all-fines-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      /* Columnas específicas con min-width */
-      .all-fines-table th:nth-child(3),
-      .all-fines-table td:nth-child(3) {
-        min-width: 150px; /* Tipus de multa */
-      }
-
-      .all-fines-table th:nth-child(4),
-      .all-fines-table td:nth-child(4) {
-        min-width: 200px; /* Comentari */
-        font-size: 10px; /* Font-size más pequeño */
-      }
-
-      .all-fines-table th:nth-child(2),
-      .all-fines-table td:nth-child(2) {
-        min-width: 70px; /* Import */
-      }
-
-      .all-fines-table th {
-        background: #f8f9fa;
-        font-weight: 600;
-        color: #495057;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-
-      .all-fines-table tbody tr:hover {
-        background: #f8f9fa;
-      }
-
-      .all-fines-table .amount {
-        text-align: right;
-        font-weight: 600;
-      }
-
-      .all-fines-table .status {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        text-align: center;
-      }
-
-      .all-fines-table .status.pendiente {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .all-fines-table .status.pagada {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      .all-fines-table .status.anulada {
-        background: #f8d7da;
-        color: #721c24;
-      }
-
-      .clear-filters-btn {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-left: auto;
-      }
-
-      .clear-filters-btn:hover {
-        background: #5a6268;
-      }
-
-      /* Estilos para el modal de nueva cena */
-      .new-dinner-btn {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        margin: 30px 0 20px 0;
-        display: block;
-        width: 100%;
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .new-dinner-btn:hover {
-        background: #0056b3;
-      }
-
-      .dinner-modal-content {
-        background: white;
-        border-radius: 8px;
-        width: 100%;
-        max-width: 100%;
-        max-height: 100vh;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        display: flex;
-        flex-direction: column;
-      }
-
-      .dinner-modal-content .modal-body {
-        max-height: unset;
-        flex: 1;
-        overflow-y: auto;
-      }
-
-      .dinner-input-group {
-        margin-bottom: 20px;
-      }
-
-      .dinner-input-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #495057;
-      }
-
-      .dinner-input-group input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        font-size: 16px;
-        max-width: 200px;
-      }
-
-      .dinner-input-group input:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-      }
-
-      .dinner-help-text {
-        color: #6c757d;
-        font-size: 14px;
-        margin-bottom: 15px;
-        font-style: italic;
-      }
-
-      .dinner-players-list {
-        margin-bottom: 20px;
-      }
-
-      .dinner-player-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: white;
-      }
-
-      .dinner-player-item .player-avatar {
-        width: 40px;
-        height: 40px;
-      }
-
-      .dinner-player-item:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .dinner-player-item.selected {
-        border-color: #007bff;
-        background: #f0f7ff;
-      }
-
-      .dinner-player-item.not-selected {
-        border: none;
-        background: #e9ecef;
-        opacity: 0.6;
-      }
-
-      .dinner-player-item.not-selected img {
-        filter: grayscale(100%);
-      }
-
-      .dinner-player-item.not-selected .player-name,
-      .dinner-player-item.not-selected .amount {
-        color: #6c757d;
-      }
-
-      .dinner-results {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-      }
-
-      .dinner-results-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #dee2e6;
-      }
-
-      .dinner-results-row:last-child {
-        border-bottom: none;
-      }
-
-      .dinner-results-label {
-        font-weight: 600;
-        color: #495057;
-      }
-
-      .dinner-results-value {
-        font-weight: 700;
-        color: #333;
-      }
-
-      .dinner-player-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-      }
-
-      .dinner-player-table th,
-      .dinner-player-table td {
-        padding: 6px 12px;
-        text-align: left;
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      .dinner-player-table th {
-        background: #f8f9fa;
-        font-weight: 600;
-        color: #495057;
-      }
-
-      .dinner-player-table tbody tr:hover {
-        background: #f8f9fa;
-      }
-
-      .dinner-confirm-btn {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 14px 28px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-        width: 100%;
-        margin-top: 20px;
-      }
-
-      .dinner-confirm-btn:hover {
-        background: #0056b3;
-      }
-
-      .dinner-confirm-btn:disabled {
-        background: #6c757d;
-        cursor: not-allowed;
-      }
-
-      .admin-token-button-container {
-        display: flex;
-        justify-content: right;
-      }
-
-      .admin-token-button {
-        border-radius: 4px;
-        padding: 3px 6px;
-        cursor: pointer;
-        font-size: 14px;
-        color: #6c757d;
-        border: 1px solid #e9ecef;
-        width: 50px;
-        text-align: center;
-        margin-right: 10px;
-      }
-
-      @media (max-width: 768px) {
-        #app {
-          padding: 15px;
-          margin: 10px;
-        }
-
-        h1 {
-          font-size: 24px;
-          margin-bottom: 20px;
-        }
-
-        h3 {
-          font-size: 18px;
-          margin-bottom: 15px;
-        }
-
-        .player-row {
-          flex-direction: row;
-          text-align: left;
-          gap: 15px;
-          padding: 15px;
-          margin-bottom: 10px;
-          align-items: center;
-        }
-
-        .player-info {
-          flex-direction: row;
-          gap: 12px;
-          flex: 1;
-        }
-
-        .player-avatar {
-          width: 50px;
-          height: 50px;
-        }
-
-        .player-name {
-          font-size: 16px;
-        }
-
-        .total-fines {
-          text-align: right;
-          flex-shrink: 0;
-        }
-
-        .amount {
-          font-size: 18px;
-        }
-
-        .count {
-          font-size: 12px;
-        }
-
-        .modal-content {
-          margin: 20px;
-          width: 98%;
-          max-width: 98%;
-          max-height: calc(100vh - 40px);
-        }
-
-        .modal-header {
-          padding: 15px;
-        }
-
-        .modal-header h3 {
-          font-size: 18px;
-        }
-
-        .modal-body {
-          padding: 15px;
-          max-height: 50vh;
-        }
-
-        .fines-table {
-          font-size: 12px;
-        }
-
-        .fines-table th,
-        .fines-table td {
-          padding: 6px 4px;
-          font-size: 12px;
-        }
-
-        .fines-table th {
-          font-size: 11px;
-        }
-
-        .filters-container {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .filter-group {
-          min-width: auto;
-        }
-
-        .filter-group input,
-        .filter-group select {
-          min-width: auto;
-        }
-
-        .clear-filters-btn {
-          margin-left: 0;
-          margin-top: 10px;
-        }
-
-        .all-fines-table {
-          font-size: 12px;
-          min-width: 600px; /* Asegura que la tabla tenga un ancho mínimo */
-        }
-
-        .all-fines-table th,
-        .all-fines-table td {
-          padding: 8px 6px;
-          font-size: 12px;
-        }
-
-        .table-container {
-          margin: 10px -10px; /* Extiende el scroll horizontal */
-        }
-      }
-
-      @media (max-width: 480px) {
-        #app {
-          padding: 10px;
-          margin: 5px;
-        }
-
-        .player-row {
-          padding: 12px 8px;
-          gap: 10px;
-        }
-
-        .player-info {
-          gap: 8px;
-        }
-
-        .player-avatar {
-          width: 45px;
-          height: 45px;
-        }
-
-        .player-name {
-          font-size: 15px;
-        }
-
-        .amount {
-          font-size: 16px;
-        }
-
-        .count {
-          font-size: 11px;
-        }
-
-        .fines-table {
-          font-size: 11px;
-        }
-
-        .fines-table th,
-        .fines-table td {
-          padding: 4px 2px;
-          font-size: 11px;
-        }
-
-        .all-fines-table {
-          min-width: 500px;
-        }
-
-        .section-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-        }
-
-        .toggle-filters-btn {
-          padding: 4px 8px;
-          font-size: 11px;
-        }
-
-        .dinner-input-group input {
-          max-width: 100%;
-        }
-
-        .dinner-player-item {
-          padding: 10px;
-        }
-
-        .dinner-results-row {
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .dinner-player-table {
-          font-size: 12px;
-        }
-
-        .dinner-player-table th,
-        .dinner-player-table td {
-          padding: 8px 6px;
-          font-size: 12px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <div style="text-align: center">
-        <img
-          style="width: 150px; height: 150px; object-fit: contain"
-          src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg"
-        />
-      </div>
-      <h1>Multes Minguella - Senior A</h1>
-
-      <div v-if="parsedData.length" id="app-content" style="visibility: hidden">
-        <div v-if="error" class="error">Error: {{ error }}</div>
-        <h3>Multes per Jugador</h3>
-
-        <!-- Tabla agrupada por jugador -->
-        <div class="players-table">
-          <div
-            v-for="player in playersWithFines"
-            :key="player.name"
-            class="player-row"
-            @click="showPlayerDetails(player)"
-          >
-            <div class="player-info">
-              <img :src="player.img" :alt="player.name" class="player-avatar" />
-              <span class="player-name">{{ player.name }}</span>
-            </div>
-            <div class="total-fines">
-              <span :class="['amount', getAmountClass(player.totalFines)]"
-                >{{ player.totalFines.toFixed(2) }} €</span
-              >
-              <span class="count">({{ player.pendingCount }} multes)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón Nueva Cena -->
-        <button @click="openDinnerModal" class="new-dinner-btn">
-          🍽️ Nueva cena
-        </button>
-
-        <!-- Listado de todas las multas con filtros -->
-        <div class="all-fines-section">
-          <div class="section-header" style="margin: 0">
-            <h3 style="display: flex; flex-direction: column">
-              Totes les Multes
-              <a
-                style="color: #ccc; font-size: 12px; margin: 0px"
-                href="https://docs.google.com/spreadsheets/d/1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI/edit?gid=0#gid=0"
-                target="_blank"
-                >Excel</a
-              >
-            </h3>
-
-            <!-- Botón para mostrar/ocultar filtros -->
-            <button
-              @click="toggleFilters"
-              class="toggle-filters-btn"
-              :class="{ 'expanded': filtersVisible }"
-            >
-              <span v-if="!filtersVisible">🔍 Mostrar Filtres</span>
-              <span v-else>🔍 Ocultar Filtres</span>
-            </button>
-          </div>
-
-          <!-- Filtros -->
-          <div class="filters-container" :class="{ 'visible': filtersVisible }">
-            <div class="filter-group">
-              <label>Jugador</label>
-              <input
-                v-model="filters.jugador"
-                type="text"
-                placeholder="Filtrar per jugador..."
-              />
-            </div>
-
-            <div class="filter-group">
-              <label>Tipus de Multa</label>
-              <input
-                v-model="filters.tipodemulta"
-                type="text"
-                placeholder="Filtrar per tipus..."
-              />
-            </div>
-
-            <div class="filter-group">
-              <label>Comentari</label>
-              <input
-                v-model="filters.comment"
-                type="text"
-                placeholder="Filtrar per comentari..."
-              />
-            </div>
-
-            <div class="filter-group">
-              <label>Estat</label>
-              <select v-model="filters.status">
-                <option value="">Tots els estats</option>
-                <option value="pendent">Pendent</option>
-                <option value="pagada">Pagada</option>
-                <option value="anulada">Anulada</option>
-              </select>
-            </div>
-
-            <div class="filter-group">
-              <label>Data Desde</label>
-              <input v-model="filters.fechaDesde" type="date" />
-            </div>
-
-            <div class="filter-group">
-              <label>Data Fins</label>
-              <input v-model="filters.fechaHasta" type="date" />
-            </div>
-
-            <button @click="clearFilters" class="clear-filters-btn">
-              Netejar Filtres
-            </button>
-          </div>
-
-          <!-- Tabla de todas las multas -->
-          <div class="table-container">
-            <table class="all-fines-table">
-              <thead>
-                <tr>
-                  <th>Jugador</th>
-                  <th>Import</th>
-                  <th>Tipus de Multa</th>
-                  <th>Comentari</th>
-                  <th>Data</th>
-                  <th>Estat</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="fine in reversedFilteredAllFines"
-                  :key="fine.jugador + fine.tipodemulta + fine.fechacreacion"
-                >
-                  <td>{{ fine.jugador }}</td>
-                  <td class="amount" style="color: #6c757d">
-                    {{ fine.precio.toFixed(2) }} €
-                  </td>
-                  <td>{{ fine.tipodemulta }}</td>
-                  <td>{{ fine.comment }}</td>
-                  <td>{{ formatDateForDisplay(fine.fechacreacion) }}</td>
-                  <td>
-                    <span :class="['status', fine.status.toLowerCase()]">
-                      {{ fine.status }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="1"><strong>Total:</strong></td>
-                  <td class="amount total">
-                    <strong style="color: black"
-                      >{{ totalFilteredFines.toFixed(2) }} €</strong
-                    >
-                  </td>
-                  <td colspan="2"></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          <!-- Popup de detalle de multas -->
-          <div
-            v-if="selectedPlayer"
-            class="modal-overlay"
-            @click="closePlayerDetails"
-          >
-            <div class="modal-content" @click.stop>
-              <div class="modal-header">
-                <h3>Multes de {{ selectedPlayer.name }}</h3>
-                <button class="close-btn" @click="closePlayerDetails">
-                  &times;
-                </button>
-              </div>
-              <div class="modal-body">
-                <table class="fines-table">
-                  <thead>
-                    <tr>
-                      <th>Tipus de Multa</th>
-                      <th>Comentari</th>
-                      <th>Import</th>
-                      <th>Data</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="fine in selectedPlayer.fines"
-                      :key="fine.tipodemulta + fine.fechacreacion"
-                    >
-                      <td style="font-size: 10px">{{ fine.tipodemulta }}</td>
-                      <td style="font-size: 10px">{{ fine.comment }}</td>
-                      <td
-                        style="font-size: 10px; text-align: right"
-                        class="amount"
-                      >
-                        {{ fine.precio.toFixed(2) }} €
-                      </td>
-                      <td style="font-size: 10px">
-                        {{ formatDateForDisplay(fine.fechacreacion) }}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan="2"><strong>Total:</strong></td>
-                      <td
-                        style="text-align: right"
-                        :class="['amount', 'total', getAmountClass(selectedPlayer.totalFines)]"
-                      >
-                        <strong
-                          >{{ selectedPlayer.totalFines.toFixed(2) }} €</strong
-                        >
-                      </td>
-                      <td colspan="2"></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Nueva Cena -->
-        <div
-          v-if="showDinnerModal"
-          class="modal-overlay"
-          @click="closeDinnerModal"
-        >
-          <div class="dinner-modal-content" @click.stop>
-            <div class="modal-header">
-              <h3>Nueva Cena</h3>
-              <button class="close-btn" @click="closeDinnerModal">
-                &times;
-              </button>
-            </div>
-            <div class="modal-body">
-              <!-- Input Precio por persona -->
-              <div class="dinner-input-group">
-                <label>Precio por persona (€)</label>
-                <input
-                  style="max-width: 100%"
-                  v-model.number="dinnerPricePerPerson"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="Ej: 30"
-                  required
-                />
-              </div>
-
-              <!-- Listado de jugadores -->
-              <h4 style="margin-top: 20px; margin-bottom: 10px">Jugadores</h4>
-              <p class="dinner-help-text">
-                Haz click para cambiar quién asiste a la cena
-              </p>
-
-              <div class="dinner-players-list">
-                <!-- Jugadores seleccionados -->
-                <div
-                  v-for="player in selectedDinnerPlayers"
-                  :key="player.name"
-                  class="dinner-player-item selected"
-                  @click="toggleDinnerPlayer(player.name)"
-                >
-                  <div class="player-info">
-                    <img
-                      :src="player.img"
-                      :alt="player.name"
-                      class="player-avatar"
-                    />
-                    <span class="player-name">{{ player.name }}</span>
-                  </div>
-                  <div class="total-fines">
-                    <span class="amount"
-                      >{{ player.totalFines.toFixed(2) }} €</span
-                    >
-                  </div>
-                </div>
-
-                <!-- Jugadores no seleccionados -->
-                <div
-                  v-for="player in unselectedDinnerPlayers"
-                  :key="player.name"
-                  class="dinner-player-item not-selected"
-                  @click="toggleDinnerPlayer(player.name)"
-                >
-                  <div class="player-info">
-                    <img
-                      :src="player.img"
-                      :alt="player.name"
-                      class="player-avatar"
-                    />
-                    <span class="player-name">{{ player.name }}</span>
-                  </div>
-                  <div class="total-fines">
-                    <span class="amount"
-                      >{{ player.totalFines.toFixed(2) }} €</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <!-- Resultados dinámicos -->
-              <div class="dinner-results">
-                <div class="dinner-results-row">
-                  <span class="dinner-results-label">Total de multas:</span>
-                  <span class="dinner-results-value"
-                    >{{ totalDinnerFines.toFixed(2) }} €</span
-                  >
-                </div>
-                <div class="dinner-results-row">
-                  <span class="dinner-results-label">Total de la cena:</span>
-                  <span class="dinner-results-value"
-                    >{{ totalDinnerCost.toFixed(2) }} €</span
-                  >
-                </div>
-                <div class="dinner-results-row">
-                  <span class="dinner-results-label"
-                    >Importe de cena pendiente:</span
-                  >
-                  <span
-                    class="dinner-results-value"
-                    :style="dinnerPendingStyle"
-                  >
-                    {{ dinnerPendingText }}
-                  </span>
-                </div>
-                <div class="dinner-results-row">
-                  <span class="dinner-results-label"
-                    >Importe extra por persona:</span
-                  >
-                  <span
-                    class="dinner-results-value"
-                    :style="dinnerExtraPerPersonStyle"
-                  >
-                    {{ dinnerExtraPerPersonText }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Tabla por jugador -->
-              <h4 style="margin-top: 20px; margin-bottom: 10px">
-                Listado por jugador
-              </h4>
-              <table class="dinner-player-table">
-                <thead>
-                  <tr>
-                    <th>Jugador</th>
-                    <th>Multa</th>
-                    <th>Cena extra por persona</th>
-                    <th>Total a pagar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="player in selectedDinnerPlayers"
-                    :key="player.name"
-                  >
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.totalFines.toFixed(2) }} €</td>
-                    <td>{{ getExtraPerPerson(player.name).toFixed(2) }} €</td>
-                    <td>
-                      <strong
-                        >{{ ( player.totalFines + getExtraPerPerson(player.name)
-                        ).toFixed(2) }} €</strong
-                      >
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- Botón confirmar -->
-              <button
-                v-if="!!adminToken"
-                @click="confirmDinner"
-                class="dinner-confirm-btn"
-                :disabled="!canConfirmDinner || confirmingDinner"
-              >
-                <span v-if="confirmingDinner">⏳ Cargando...</span>
-                <span v-else>Confirmar cena y marcar multas como pagadas</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="normes-section">
-          <h3>Normes</h3>
-          <div v-for="(norma, index) in normes" :key="index" class="norma">
-            {{ norma.Norma }}
-            <div v-if="norma.Excepcio">
-              <span class="exception">Excepció: {{ norma.Excepcio }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="admin-token-button-container">
-          <div class="admin-token-button" @click="setAdminToken">Admin</div>
-        </div>
-      </div>
-      <!-- PapaParse para CSV robusto -->
-      <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-      <!-- Vue 3 por CDN -->
-      <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-      <script>
-        const { createApp } = Vue;
-
-        // 🔧 Sustituye por tu Sheet y pestaña
-        const SHEET_ID = "1fkCpZgF1BCl-_lOsB4O-MGofvkw6NBYAUIGd3aYWOyI";
-        const GID = "0";
-        const GID_JUGADORS = "1534873034";
-        const GID_NORMES = "666064212";
-        const MULTES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
-        const JUGADORS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_JUGADORS}`;
-        const NORMES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_NORMES}`;
-
-        // Utilidades
-        const parsePrice = (v) => {
-          if (v == null) return 0;
-          const s = String(v).trim().replace(/[€\s]/g, "").replace(",", ".");
-          const n = parseFloat(s);
-          return Number.isFinite(n) ? n : 0;
-        };
-
-        const normalizeHeader = (s) =>
-          String(s || "")
-            .trim()
-            .toLowerCase();
-
-        const parseDate = (v) => {
-          return v.split(" ")[0];
-        };
-
-        function rowsToObjects(papaResult) {
-          const rows = papaResult.data || [];
-          if (!rows.length) return [];
-          const headerMap = {};
-          Object.keys(rows[0]).forEach((k) => {
-            headerMap[normalizeHeader(k)] = k;
-          });
-
-          const get = (row, logical) => row[headerMap[logical]] ?? "";
-
-          return rows.map((row) => {
-            const fecha = parseDate(get(row, "fecha creación"));
-            return {
-              jugador: get(row, "jugador"),
-              tipodemulta: get(row, "tipo de multa"),
-              precio: parsePrice(get(row, "importe")),
-              comment: get(row, "comentario"),
-              fechacreacion: fecha,
-              status: String(get(row, "estado") || ""),
-            };
-          });
-        }
-
-        createApp({
-          data() {
-            return {
-              loading: false,
-              error: "",
-              parsedData: [],
-              players: [],
-              normes: [],
-              selectedPlayer: null, // Para el popup de detalle
-              filters: {
-                jugador: "",
-                tipodemulta: "",
-                comment: "",
-                status: "pendent",
-                fechaDesde: "",
-                fechaHasta: "",
-              },
-              filtersVisible: false,
-              // Datos para el modal de cena
-              showDinnerModal: false,
-              dinnerPricePerPerson: 30,
-              adminToken: localStorage.getItem("admin-token"),
-              confirmingDinner: false,
-              selectedDinnerPlayerNames: [], // Array de nombres de jugadores seleccionados
-            };
-          },
-          computed: {
-            playersWithFines() {
-              const playersMap = {};
-              this.players.forEach((player) => {
-                playersMap[player.Nom] = {
-                  name: player.Nom,
-                  img: player.Foto,
-                  fines: [],
-                  totalFines: 0,
-                  pendingCount: 0,
-                };
-              });
-
-              // Procesar las multas existentes
-              this.parsedData.forEach((fine) => {
-                const playerName = fine.jugador;
-                // Solo procesar si el jugador está en PLAYERS
-                if (playersMap[playerName]) {
-                  // Solo agregar multas pendientes al array de multas
-                  if (fine.status.toLowerCase() === "pendent") {
-                    playersMap[playerName].fines.push(fine);
-                    playersMap[playerName].pendingCount++;
-                    playersMap[playerName].totalFines += fine.precio;
-                  }
-                }
-              });
-
-              // Retornar todos los jugadores ordenados por multa total
-              return Object.values(playersMap).sort(
-                (a, b) => b.totalFines - a.totalFines
-              );
-            },
-            reversedFilteredAllFines() {
-              return [...this.filteredAllFines].reverse();
-            },
-            filteredAllFines() {
-              return this.parsedData.filter((fine) => {
-                // Filtro por jugador
-                if (
-                  this.filters.jugador &&
-                  !fine.jugador
-                    .toLowerCase()
-                    .includes(this.filters.jugador.toLowerCase())
-                ) {
-                  return false;
-                }
-
-                // Filtro por tipo de multa
-                if (
-                  this.filters.tipodemulta &&
-                  !fine.tipodemulta
-                    .toLowerCase()
-                    .includes(this.filters.tipodemulta.toLowerCase())
-                ) {
-                  return false;
-                }
-
-                // Filtro por comentario
-                if (
-                  this.filters.comment &&
-                  !fine.comment
-                    .toLowerCase()
-                    .includes(this.filters.comment.toLowerCase())
-                ) {
-                  return false;
-                }
-
-                // Filtro por estado
-                if (
-                  this.filters.status &&
-                  fine.status.toLowerCase() !==
-                    this.filters.status.toLowerCase()
-                ) {
-                  return false;
-                }
-
-                // Filtro por fecha desde
-                if (
-                  this.filters.fechaDesde &&
-                  fine.fechacreacion < this.filters.fechaDesde
-                ) {
-                  return false;
-                }
-
-                // Filtro por fecha hasta
-                if (
-                  this.filters.fechaHasta &&
-                  fine.fechacreacion > this.filters.fechaHasta
-                ) {
-                  return false;
-                }
-
-                return true;
-              });
-            },
-
-            totalFilteredFines() {
-              return this.filteredAllFines.reduce(
-                (total, fine) => total + fine.precio,
-                0
-              );
-            },
-            // Computed para jugadores de cena
-            selectedDinnerPlayers() {
-              return this.playersWithFines
-                .filter((p) => this.selectedDinnerPlayerNames.includes(p.name))
-                .sort((a, b) => b.totalFines - a.totalFines);
-            },
-            unselectedDinnerPlayers() {
-              return this.playersWithFines.filter(
-                (p) => !this.selectedDinnerPlayerNames.includes(p.name)
-              );
-            },
-            // Cálculos de cena
-            totalDinnerFines() {
-              return this.selectedDinnerPlayers.reduce(
-                (total, player) => total + player.totalFines,
-                0
-              );
-            },
-            totalDinnerCost() {
-              if (
-                !this.dinnerPricePerPerson ||
-                this.selectedDinnerPlayers.length === 0
-              ) {
-                return 0;
-              }
-              return (
-                this.dinnerPricePerPerson * this.selectedDinnerPlayers.length
-              );
-            },
-            dinnerPendingAmount() {
-              return this.totalDinnerCost - this.totalDinnerFines;
-            },
-            dinnerPendingText() {
-              const amount = Math.abs(this.dinnerPendingAmount);
-              if (this.dinnerPendingAmount > 0) {
-                return `Faltan ${amount.toFixed(2)}€`;
-              } else if (this.dinnerPendingAmount < 0) {
-                return `Sobran ${amount.toFixed(2)}€`;
-              }
-              return "0.00€";
-            },
-            dinnerPendingStyle() {
-              if (this.dinnerPendingAmount > 0) {
-                return { color: "#dc3545" };
-              } else if (this.dinnerPendingAmount < 0) {
-                return { color: "#28a745" };
-              }
-              return { color: "#333" };
-            },
-            dinnerExtraPerPerson() {
-              if (this.selectedDinnerPlayers.length === 0) {
-                return 0;
-              }
-              const extra =
-                this.dinnerPendingAmount / this.selectedDinnerPlayers.length;
-              // Redondear siempre a la alza a 1 decimal
-              return Math.ceil(extra * 10) / 10;
-            },
-            dinnerExtraPerPersonText() {
-              const amount = Math.abs(this.dinnerExtraPerPerson);
-              if (this.dinnerExtraPerPerson > 0) {
-                return `Faltan ${Number(amount.toFixed(1)).toFixed(
-                  2
-                )}€ por persona`;
-              } else if (this.dinnerExtraPerPerson < 0) {
-                return `Sobran ${amount.toFixed(2)}€ por persona`;
-              }
-              return "0.0€ por persona";
-            },
-            dinnerExtraPerPersonStyle() {
-              if (this.dinnerExtraPerPerson > 0) {
-                return { color: "#dc3545" };
-              } else if (this.dinnerExtraPerPerson < 0) {
-                return { color: "#28a745" };
-              }
-              return { color: "#333" };
-            },
-            canConfirmDinner() {
-              return (
-                this.dinnerPricePerPerson &&
-                this.dinnerPricePerPerson > 0 &&
-                this.selectedDinnerPlayers.length > 0
-              );
-            },
-          },
-          methods: {
-            async loadNormes() {
-              try {
-                const res = await fetch(NORMES_URL);
-                if (!res.ok) throw new Error("HTTP " + res.status);
-                const text = await res.text();
-                const papa = Papa.parse(text, {
-                  header: true,
-                  skipEmptyLines: true,
-                });
-                this.normes = papa.data;
-              } catch (e) {
-                this.error = String(e);
-              }
-            },
-            async loadPlayers() {
-              try {
-                const res = await fetch(JUGADORS_URL);
-                if (!res.ok) throw new Error("HTTP " + res.status);
-                const text = await res.text();
-                const papa = Papa.parse(text, {
-                  header: true,
-                  skipEmptyLines: true,
-                });
-                this.players = papa.data;
-              } catch (e) {
-                this.error = String(e);
-              }
-            },
-            async load() {
-              this.loading = true;
-              this.error = "";
-              try {
-                const res = await fetch(MULTES_URL, { cache: "no-store" });
-                if (!res.ok) throw new Error("HTTP " + res.status);
-                const text = await res.text();
-                const papa = Papa.parse(text, {
-                  header: true,
-                  skipEmptyLines: true,
-                });
-                this.parsedData = rowsToObjects(papa);
-                await this.loadPlayers();
-                this.loadNormes();
-              } catch (e) {
-                this.error = String(e);
-              } finally {
-                this.loading = false;
-              }
-            },
-            showPlayerDetails(player) {
-              this.selectedPlayer = player;
-            },
-            closePlayerDetails() {
-              this.selectedPlayer = null;
-            },
-            formatDateForDisplay(dateString) {
-              return dateString; //.slice(0, 10);
-            },
-
-            clearFilters() {
-              this.filters = {
-                jugador: "",
-                tipodemulta: "",
-                comment: "",
-                status: "Pendent",
-                fechaDesde: "",
-                fechaHasta: "",
-              };
-            },
-
-            toggleFilters() {
-              this.filtersVisible = !this.filtersVisible;
-            },
-
-            getAmountClass(amount) {
-              if (amount <= 10) return "low";
-              if (amount <= 25) return "medium";
-              if (amount <= 40) return "high";
-              return "critical";
-            },
-            // Métodos para el modal de cena
-            openDinnerModal() {
-              // Inicializar con todos los jugadores seleccionados
-              if (this.selectedDinnerPlayerNames?.length === 0)
-                this.selectedDinnerPlayerNames = this.playersWithFines.map(
-                  (p) => p.name
-                );
-              if (!this.dinnerPricePerPerson) this.dinnerPricePerPerson = 30;
-              this.showDinnerModal = true;
-              // Quitar el scroll del body cuando se abre el modal
-              document.body.style.overflow = "hidden";
-            },
-            closeDinnerModal() {
-              this.showDinnerModal = false;
-              // Restaurar el scroll del body cuando se cierra el modal
-              document.body.style.overflow = "";
-            },
-            toggleDinnerPlayer(playerName) {
-              const index = this.selectedDinnerPlayerNames.indexOf(playerName);
-              if (index > -1) {
-                // Deseleccionar
-                this.selectedDinnerPlayerNames.splice(index, 1);
-              } else {
-                // Seleccionar
-                this.selectedDinnerPlayerNames.push(playerName);
-              }
-            },
-            getExtraPerPerson(playerName) {
-              // Si el extra es negativo, retornar 0
-              if (this.dinnerExtraPerPerson < 0) {
-                return 0;
-              }
-              return this.dinnerExtraPerPerson;
-            },
-            setAdminToken() {
-              const token = prompt("Introduce el token de admin:");
-              if (token) {
-                localStorage.setItem("admin-token", token);
-                this.adminToken = token;
-              }
-            },
-            async confirmDinner() {
-              if (!this.canConfirmDinner || this.confirmingDinner) {
-                return;
-              }
-
-              this.confirmingDinner = true;
-              try {
-                const response = await fetch(
-                  "https://n8n.rourera.es/webhook/minguella/marcar-multas-pagadas",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "x-authorization": this.adminToken,
-                    },
-                    body: JSON.stringify({
-                      jugadores: this.selectedDinnerPlayerNames,
-                    }),
-                  }
-                );
-
-                if (!response.ok) {
-                  throw new Error(await response.text());
-                } else {
-                  this.closeDinnerModal();
-                  window.location.reload();
-                }
-              } catch (error) {
-                this.error = `Error al confirmar la cena: ${error.message}`;
-                alert(this.error);
-              } finally {
-                this.confirmingDinner = false;
-              }
-            },
-          },
-          async mounted() {
-            await this.load();
-            document.getElementById("app-content").style.visibility = "visible";
-          },
-        }).mount("#app");
-      </script>
+<html lang="ca">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AE Minguella · Control de Multes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#132A5E;
+    --navy-deep:#0B1B3F;
+    --charcoal:#14161A;
+    --orange:#E8720C;
+    --amber:#F5C518;
+    --bg:#F2F3F6;
+    --surface:#FFFFFF;
+    --success:#2E9E5B;
+    --success-bg:#E4F5EA;
+    --danger:#C74B4B;
+    --danger-bg:#FBEAEA;
+    --muted:#6B7280;
+    --border:#E5E7EB;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(19,42,94,0.08);
+    --shadow-hover:0 8px 22px rgba(19,42,94,0.16);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--charcoal);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    margin:0;
+  }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  a{color:var(--navy);}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    background:var(--charcoal);
+    color:#fff;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:30;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+  }
+  .topbar img{
+    width:42px;height:42px;object-fit:contain;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+  }
+  .topbar .brand{
+    display:flex;
+    flex-direction:column;
+    line-height:1.1;
+  }
+  .topbar .brand .club{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.05em;
+  }
+  .topbar .brand .sub{
+    font-size:12px;
+    color:#c9cedb;
+    letter-spacing:0.03em;
+  }
+
+  /* Quick nav */
+  .quicknav{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:10px 16px;
+    background:var(--navy-deep);
+    position:sticky;
+    top:70px;
+    z-index:29;
+    scrollbar-width:none;
+  }
+  .quicknav::-webkit-scrollbar{display:none;}
+  .quicknav a{
+    flex:0 0 auto;
+    color:#dfe4f0;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+    padding:7px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.18);
+    white-space:nowrap;
+  }
+  .quicknav a:hover{
+    background:rgba(255,255,255,0.1);
+  }
+
+  .wrap{
+    max-width:900px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+
+  section{ margin-top:34px; }
+  section:first-of-type{ margin-top:22px; }
+
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .section-head h2{ font-size:19px; color:var(--navy-deep); }
+  .section-head .hint{ font-size:12px; color:var(--muted); font-family:'Inter',sans-serif; text-transform:none; }
+
+  /* ---------- Scoreboard hero ---------- */
+  .scoreboard{
+    background:linear-gradient(160deg,var(--navy-deep),var(--navy));
+    border-radius:var(--radius);
+    padding:24px 20px;
+    color:#fff;
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+    animation:riseIn .5s ease-out;
+  }
+  .scoreboard::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:5px;
+    background:var(--amber);
+  }
+  .scoreboard-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .scoreboard-label{
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:#a9b4d0;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .scoreboard-badge{
+    font-size:11px;
+    background:rgba(245,197,24,0.15);
+    color:var(--amber);
+    border:1px solid rgba(245,197,24,0.4);
+    padding:3px 9px;
+    border-radius:999px;
+    font-weight:600;
+  }
+  .scoreboard-amount{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:52px;
+    letter-spacing:0.01em;
+    color:var(--amber);
+    text-shadow:0 0 18px rgba(245,197,24,0.35);
+    line-height:1;
+  }
+  .scoreboard-amount small{ font-size:22px; opacity:0.8; }
+  .scoreboard-stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:18px;
+  }
+  .scoreboard-stat{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:10px;
+    padding:10px 8px;
+    text-align:center;
+  }
+  .scoreboard-stat .v{
+    font-family:'JetBrains Mono',monospace;
+    font-size:18px;
+    font-weight:700;
+  }
+  .scoreboard-stat .l{
+    font-size:10.5px;
+    color:#a9b4d0;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-top:2px;
+  }
+
+  @keyframes riseIn{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .scoreboard{ animation:none; }
+  }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+  }
+
+  .player-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:13px 14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .player-card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-hover);
+    border-color:var(--navy);
+  }
+  .player-rank{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    color:var(--muted);
+    width:22px;
+    text-align:center;
+    flex:0 0 auto;
+  }
+  .player-rank.top{ color:var(--orange); }
+  .player-avatar{
+    width:52px;height:52px;border-radius:50%;
+    object-fit:cover;border:2px solid var(--border);
+    flex:0 0 auto;
+    background:var(--bg);
+  }
+  .player-main{ flex:1 1 auto; min-width:0; }
+  .player-name{ font-weight:600; font-size:15px; }
+  .player-bar-track{
+    height:6px;background:var(--bg);border-radius:99px;margin-top:6px;overflow:hidden;
+  }
+  .player-bar-fill{
+    height:100%;border-radius:99px;
+    transition:width .4s ease;
+  }
+  .player-side{ text-align:right; flex:0 0 auto; }
+  .player-amount{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; }
+  .player-count{ font-size:11.5px; color:var(--muted); }
+
+  .amount.low, .player-amount.low{ color:var(--muted); }
+  .amount.medium, .player-amount.medium{ color:#B98900; }
+  .amount.high, .player-amount.high{ color:var(--orange); }
+  .amount.critical, .player-amount.critical{ color:var(--danger); }
+
+  .fill-low{ background:#9AA1AC; }
+  .fill-medium{ background:var(--amber); }
+  .fill-high{ background:var(--orange); }
+  .fill-critical{ background:var(--danger); }
+
+  /* ---------- Badges ---------- */
+  .status-badge{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:4px 9px;
+    border-radius:999px;
+    display:inline-block;
+    white-space:nowrap;
+  }
+  .status-pending{ background:#FFF3CD; color:#8A6D00; }
+  .status-payed{ background:var(--success-bg); color:var(--success); }
+  .status-cancelled{ background:var(--danger-bg); color:var(--danger); }
+
+  /* ---------- Filters ---------- */
+  .filters-toggle{
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--navy-deep);
+    font-weight:600;
+    font-size:13px;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .filters-toggle.active{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  .filters-panel{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(130px,1fr));
+    gap:10px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .filter-field label{
+    display:block;font-size:11px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px;
+  }
+  .filter-field select,
+  .filter-field input{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+  }
+  .filter-field select:focus,
+  .filter-field input:focus{
+    outline:none;border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(19,42,94,0.12);
+  }
+  .filters-clear{
+    grid-column:1/-1;
+    justify-self:end;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+
+  /* ---------- Multas list ---------- */
+  .fine-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  .fine-row:last-child{ border-bottom:none; }
+  .fine-main{ flex:1 1 auto; min-width:0; }
+  .fine-player{ font-weight:600; font-size:14px; }
+  .fine-meta{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .fine-reason{ font-size:12px; color:var(--muted); margin-top:2px; font-style:italic; }
+  .fine-side{ text-align:right; flex:0 0 auto; }
+  .fine-amount{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; }
+  .fine-date{ font-size:11px; color:var(--muted); margin-top:4px; }
+
+  .list-total{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px;
+    font-weight:700;
+    background:var(--bg);
+    border-top:2px solid var(--border);
+    border-radius:0 0 var(--radius) var(--radius);
+  }
+  .list-total .mono{ font-size:17px; color:var(--navy-deep); }
+
+  /* ---------- Tipos de multa ---------- */
+  .tipo-card{
+    padding:14px;
+    margin-bottom:10px;
+    border-left:4px solid var(--amber);
+  }
+  .tipo-title{ font-weight:700; font-size:14.5px; color:var(--navy-deep); }
+  .tipo-desc{ font-size:13px; color:#4B5262; margin-top:4px; line-height:1.4; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(11,27,63,0.55);
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;
+    z-index:100;
+  }
+  .modal-box{
+    background:#fff;
+    border-radius:var(--radius);
+    width:100%;max-width:520px;
+    max-height:85vh;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+  .modal-header{
+    display:flex;align-items:center;gap:12px;
+    padding:16px 18px;
+    background:var(--navy-deep);
+    color:#fff;
+  }
+  .modal-header img{
+    width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);
+  }
+  .modal-header .title{ flex:1; }
+  .modal-header .title h3{ font-size:16px; color:#fff; }
+  .modal-header .title .amt{ font-family:'JetBrains Mono',monospace; color:var(--amber); font-weight:700; font-size:14px; }
+  .modal-close{
+    background:rgba(255,255,255,0.1);
+    border:none;color:#fff;
+    width:30px;height:30px;border-radius:50%;
+    font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,0.2); }
+  .modal-body{ overflow-y:auto; padding:6px 0; }
+
+  /* ---------- states ---------- */
+  .state-box{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .state-box .emoji{ font-size:30px; display:block; margin-bottom:8px; }
+  .error-banner{
+    background:var(--danger-bg);
+    color:var(--danger);
+    border:1px solid #f2c6c6;
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .error-banner button{
+    background:var(--danger);
+    color:#fff;border:none;
+    padding:7px 14px;border-radius:8px;
+    font-size:12.5px;font-weight:600;cursor:pointer;
+    flex:0 0 auto;
+  }
+
+  .skeleton{
+    background:linear-gradient(90deg,#e9ebf0 25%,#f4f5f7 37%,#e9ebf0 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.4s ease infinite;
+    border-radius:8px;
+  }
+  @keyframes shimmer{ 0%{background-position:100% 0;} 100%{background-position:0 0;} }
+  @media (prefers-reduced-motion: reduce){ .skeleton{ animation:none; } }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    padding:30px 16px 10px;
+  }
+
+  :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
+
+  @media (max-width:520px){
+    .scoreboard-amount{ font-size:40px; }
+    .modal-box{ max-height:90vh; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
+    <div class="brand">
+      <span class="club">AE MINGUELLA</span>
+      <span class="sub">Control de Multes · Senior A</span>
     </div>
-  </body>
+  </div>
+
+  <nav class="quicknav">
+    <a href="#resum">Resum</a>
+    <a href="#ranquing">Rànquing</a>
+    <a href="#multes">Multes</a>
+    <a href="#tipus">Tipus de multa</a>
+  </nav>
+
+  <div class="wrap">
+
+    <div v-if="error" class="error-banner">
+      <span>{{ error }}</span>
+      <button @click="init">Reintentar</button>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div v-if="loading">
+      <div class="skeleton" style="height:170px;border-radius:14px;margin-bottom:30px;"></div>
+      <div class="skeleton" style="height:60px;border-radius:14px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:60px;border-radius:14px;margin-bottom:10px;"></div>
+      <div class="skeleton" style="height:60px;border-radius:14px;"></div>
+    </div>
+
+    <template v-else>
+
+      <!-- ================= RESUM / SCOREBOARD ================= -->
+      <section id="resum">
+        <div class="scoreboard">
+          <div class="scoreboard-top">
+            <span class="scoreboard-label">Bot acumulat pendent</span>
+            <span class="scoreboard-badge">{{ pendingCount }} multes obertes</span>
+          </div>
+          <div class="scoreboard-amount">{{ formatMoney(totalBotePendent, false) }}<small> €</small></div>
+
+          <div class="scoreboard-stats">
+            <div class="scoreboard-stat">
+              <div class="v">{{ formatMoney(averageFine, false) }} €</div>
+              <div class="l">Multa mitjana</div>
+            </div>
+            <div class="scoreboard-stat">
+              <div class="v">{{ activePlayers.length }}</div>
+              <div class="l">Jugadors actius</div>
+            </div>
+            <div class="scoreboard-stat">
+              <div class="v">{{ topOffender ? topOffender.name.split(' ')[0] : '—' }}</div>
+              <div class="l">Farolillo roig</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= RANKING ================= -->
+      <section id="ranquing">
+        <div class="section-head">
+          <h2>Rànquing de jugadors</h2>
+          <span class="hint">Ordenat per multes pendents</span>
+        </div>
+
+        <div v-if="rankingPlayers.length === 0" class="card state-box">
+          <span class="emoji">🏀</span>
+          Encara no hi ha jugadors registrats.
+        </div>
+
+        <div v-else>
+          <div
+            v-for="(player, idx) in rankingPlayers"
+            :key="player.id"
+            class="card player-card"
+            @click="openPlayer(player)"
+          >
+            <div class="player-rank" :class="{ top: idx === 0 && player.totalPending > 0 }">{{ idx + 1 }}</div>
+            <img class="player-avatar" :src="player.picture || fallbackAvatar" :alt="player.name" @error="onImgError" />
+            <div class="player-main">
+              <div class="player-name">{{ player.name }}</div>
+              <div class="player-bar-track">
+                <div
+                  class="player-bar-fill"
+                  :class="'fill-' + amountClass(player.totalPending)"
+                  :style="{ width: barWidth(player.totalPending) + '%' }"
+                ></div>
+              </div>
+            </div>
+            <div class="player-side">
+              <div class="player-amount mono" :class="amountClass(player.totalPending)">{{ formatMoney(player.totalPending) }}</div>
+              <div class="player-count">{{ player.pendingCount }} multes</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= LISTADO DE MULTAS ================= -->
+      <section id="multes">
+        <div class="section-head">
+          <h2>Totes les multes</h2>
+          <button class="filters-toggle" :class="{active: filtersVisible}" @click="filtersVisible = !filtersVisible">
+            {{ filtersVisible ? '✕ Amagar filtres' : '🔍 Filtres' }}
+          </button>
+        </div>
+
+        <div v-if="filtersVisible" class="card filters-panel">
+          <div class="filter-field">
+            <label>Jugador</label>
+            <select v-model="filters.player_id" @change="applyFilters">
+              <option value="">Tots</option>
+              <option v-for="p in players" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label>Tipus de multa</label>
+            <select v-model="filters.tipo_multa_id" @change="applyFilters">
+              <option value="">Tots</option>
+              <option v-for="t in tiposMulta" :key="t.id" :value="t.id">{{ t.tipo_multa }}</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label>Import exacte (€)</label>
+            <input type="number" step="0.01" min="0" v-model="filters.amount" @change="applyFilters" placeholder="Ex: 5" />
+          </div>
+          <div class="filter-field">
+            <label>Estat</label>
+            <select v-model="filters.status" @change="applyFilters">
+              <option value="">Tots</option>
+              <option value="pending">Pendent</option>
+              <option value="payed">Pagada</option>
+              <option value="cancelled">Anul·lada</option>
+            </select>
+          </div>
+          <button class="filters-clear" @click="clearFilters">Netejar filtres</button>
+        </div>
+
+        <div class="card" style="overflow:hidden;">
+          <div v-if="tableLoading" class="state-box">Carregant multes…</div>
+
+          <div v-else-if="tableMultasEnriched.length === 0" class="state-box">
+            <span class="emoji">🧾</span>
+            No hi ha multes amb aquests filtres.
+          </div>
+
+          <div v-else>
+            <div v-for="fine in tableMultasEnriched" :key="fine.id" class="fine-row">
+              <div class="fine-main">
+                <div class="fine-player">{{ fine.playerName }}</div>
+                <div class="fine-meta">{{ fine.tipoNombre }}</div>
+                <div v-if="fine.reason" class="fine-reason">"{{ fine.reason }}"</div>
+              </div>
+              <div class="fine-side">
+                <div class="fine-amount mono">{{ formatMoney(fine.amount) }}</div>
+                <span class="status-badge" :class="'status-' + fine.status">{{ statusLabel(fine.status) }}</span>
+                <div class="fine-date">{{ formatDate(fine.createdAt) }}</div>
+              </div>
+            </div>
+
+            <div class="list-total">
+              <span>Total ({{ tableMultasEnriched.length }})</span>
+              <span class="mono">{{ formatMoney(totalFilteredAmount) }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TIPOS DE MULTA ================= -->
+      <section id="tipus">
+        <div class="section-head">
+          <h2>Tipus de multa</h2>
+          <span class="hint">Normativa del vestidor</span>
+        </div>
+
+        <div v-if="activeTiposMulta.length === 0" class="card state-box">
+          <span class="emoji">📋</span>
+          No hi ha tipus de multa configurats.
+        </div>
+
+        <div v-else>
+          <div v-for="tipo in activeTiposMulta" :key="tipo.id" class="card tipo-card">
+            <div class="tipo-title">{{ tipo.tipo_multa }}</div>
+            <div v-if="tipo.descripcion" class="tipo-desc">{{ tipo.descripcion }}</div>
+          </div>
+        </div>
+      </section>
+
+    </template>
+
+    <footer>AE Minguella · Control de Multes — dades en temps real des de n8n</footer>
+  </div>
+
+  <!-- ================= MODAL DETALLE JUGADOR ================= -->
+  <div v-if="selectedPlayer" class="modal-overlay" @click="closePlayer">
+    <div class="modal-box" @click.stop>
+      <div class="modal-header">
+        <img :src="selectedPlayer.picture || fallbackAvatar" :alt="selectedPlayer.name" @error="onImgError" />
+        <div class="title">
+          <h3>{{ selectedPlayer.name }}</h3>
+          <span class="amt">{{ formatMoney(selectedPlayer.totalPending) }} pendents</span>
+        </div>
+        <button class="modal-close" @click="closePlayer">✕</button>
+      </div>
+      <div class="modal-body">
+        <div v-if="selectedPlayerFines.length === 0" class="state-box">
+          <span class="emoji">✅</span>
+          Sense multes registrades.
+        </div>
+        <div v-else>
+          <div v-for="fine in selectedPlayerFines" :key="fine.id" class="fine-row">
+            <div class="fine-main">
+              <div class="fine-player">{{ fine.tipoNombre }}</div>
+              <div v-if="fine.reason" class="fine-reason">"{{ fine.reason }}"</div>
+              <div class="fine-date">{{ formatDate(fine.createdAt) }}</div>
+            </div>
+            <div class="fine-side">
+              <div class="fine-amount mono">{{ formatMoney(fine.amount) }}</div>
+              <span class="status-badge" :class="'status-' + fine.status">{{ statusLabel(fine.status) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+
+// ======================================================================
+// CONFIGURACIÓ — substitueix per la URL real dels teus webhooks de n8n
+// ======================================================================
+const N8N_BASE_URL = "https://n8n.rourera.es/webhook";
+const ENDPOINTS = {
+  players: `${N8N_BASE_URL}/players`,
+  tipos: `${N8N_BASE_URL}/tipos-multa`,
+  multas: `${N8N_BASE_URL}/multas`,
+};
+// ======================================================================
+
+const FALLBACK_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23E5E7EB'/><text x='50%' y='55%' font-size='26' text-anchor='middle' fill='%236B7280' font-family='sans-serif'>🏀</text></svg>`
+);
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} en ${url}`);
+  const data = await res.json();
+  // Soporta tanto array directo como { data: [...] }
+  return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+}
+
+createApp({
+  data() {
+    return {
+      loading: true,
+      tableLoading: false,
+      error: '',
+
+      players: [],
+      tiposMulta: [],
+      allMultas: [],      // todas las multas, sin filtrar (para dashboard/ranking/detalle)
+      tableMultas: [],    // resultado del endpoint filtrado (para el listado)
+
+      selectedPlayer: null,
+      filtersVisible: false,
+      filters: {
+        player_id: '',
+        tipo_multa_id: '',
+        amount: '',
+        status: '',
+      },
+
+      fallbackAvatar: FALLBACK_AVATAR,
+    };
+  },
+
+  computed: {
+    activePlayers() {
+      return this.players.filter(p => !p.disabled_at);
+    },
+    activeTiposMulta() {
+      return this.tiposMulta.filter(t => !t.disabled_at);
+    },
+    pendingMultas() {
+      return this.allMultas.filter(m => m.status === 'pending');
+    },
+    pendingCount() {
+      return this.pendingMultas.length;
+    },
+    totalBotePendent() {
+      return this.pendingMultas.reduce((sum, m) => sum + Number(m.amount || 0), 0);
+    },
+    averageFine() {
+      return this.pendingCount ? this.totalBotePendent / this.pendingCount : 0;
+    },
+    rankingPlayers() {
+      const list = this.activePlayers.map(p => {
+        const fines = this.pendingMultas.filter(m => m.player_id === p.id);
+        return {
+          ...p,
+          totalPending: fines.reduce((s, f) => s + Number(f.amount || 0), 0),
+          pendingCount: fines.length,
+        };
+      });
+      return list.sort((a, b) => b.totalPending - a.totalPending);
+    },
+    topOffender() {
+      return this.rankingPlayers.length && this.rankingPlayers[0].totalPending > 0
+        ? this.rankingPlayers[0]
+        : null;
+    },
+    maxPendingAmount() {
+      return Math.max(1, ...this.rankingPlayers.map(p => p.totalPending));
+    },
+    selectedPlayerFines() {
+      if (!this.selectedPlayer) return [];
+      return this.allMultas
+        .filter(m => m.player_id === this.selectedPlayer.id)
+        .map(m => this.enrichFine(m))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+    tableMultasEnriched() {
+      return this.tableMultas
+        .map(m => this.enrichFine(m))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+    totalFilteredAmount() {
+      return this.tableMultasEnriched.reduce((s, f) => s + Number(f.amount || 0), 0);
+    },
+  },
+
+  methods: {
+    async init() {
+      this.loading = true;
+      this.error = '';
+      try {
+        const [players, tiposMulta, allMultas] = await Promise.all([
+          fetchJson(ENDPOINTS.players),
+          fetchJson(ENDPOINTS.tipos),
+          fetchJson(ENDPOINTS.multas),
+        ]);
+        this.players = players;
+        this.tiposMulta = tiposMulta;
+        this.allMultas = allMultas;
+        this.tableMultas = allMultas;
+      } catch (e) {
+        this.error = `No s'han pogut carregar les dades: ${e.message}. Comprova que N8N_BASE_URL sigui correcta i que el workflow estigui actiu.`;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async applyFilters() {
+      this.tableLoading = true;
+      try {
+        const params = new URLSearchParams();
+        if (this.filters.player_id) params.set('player_id', this.filters.player_id);
+        if (this.filters.tipo_multa_id) params.set('tipo_multa_id', this.filters.tipo_multa_id);
+        if (this.filters.amount !== '' && this.filters.amount !== null) params.set('amount', this.filters.amount);
+        if (this.filters.status) params.set('status', this.filters.status);
+
+        const url = params.toString() ? `${ENDPOINTS.multas}?${params}` : ENDPOINTS.multas;
+        this.tableMultas = await fetchJson(url);
+      } catch (e) {
+        this.error = `Error filtrant multes: ${e.message}`;
+      } finally {
+        this.tableLoading = false;
+      }
+    },
+
+    clearFilters() {
+      this.filters = { player_id: '', tipo_multa_id: '', amount: '', status: '' };
+      this.applyFilters();
+    },
+
+    enrichFine(m) {
+      const player = this.players.find(p => p.id === m.player_id);
+      const tipo = this.tiposMulta.find(t => t.id === m.tipo_multa_id);
+      return {
+        ...m,
+        playerName: player ? player.name : `Jugador #${m.player_id}`,
+        tipoNombre: tipo ? tipo.tipo_multa : `Tipus #${m.tipo_multa_id}`,
+        createdAt: m.createdAt || m.created_at,
+      };
+    },
+
+    openPlayer(player) {
+      this.selectedPlayer = player;
+      document.body.style.overflow = 'hidden';
+    },
+    closePlayer() {
+      this.selectedPlayer = null;
+      document.body.style.overflow = '';
+    },
+
+    amountClass(amount) {
+      if (amount <= 10) return 'low';
+      if (amount <= 25) return 'medium';
+      if (amount <= 40) return 'high';
+      return 'critical';
+    },
+    barWidth(amount) {
+      if (!amount) return 2;
+      return Math.max(4, Math.min(100, (amount / this.maxPendingAmount) * 100));
+    },
+    statusLabel(status) {
+      return { pending: 'Pendent', payed: 'Pagada', cancelled: "Anul·lada" }[status] || status;
+    },
+    formatMoney(n, withSymbol = true) {
+      const v = Number(n || 0).toFixed(2);
+      return withSymbol ? `${v} €` : v;
+    },
+    formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d)) return '—';
+      return d.toLocaleDateString('ca-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    },
+    onImgError(e) {
+      e.target.src = this.fallbackAvatar;
+    },
+  },
+
+  mounted() {
+    this.init();
+  },
+}).mount('#app');
+</script>
+</body>
 </html>
