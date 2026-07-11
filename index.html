@@ -113,7 +113,7 @@
     padding:20px 16px 60px;
   }
 
-  section{ margin-top:34px; }
+  section{ margin-top:34px; scroll-margin-top:132px; }
   section:first-of-type{ margin-top:22px; }
 
   .section-head{
@@ -503,23 +503,18 @@
       <section id="resum">
         <div class="scoreboard">
           <div class="scoreboard-top">
-            <span class="scoreboard-label">Bot acumulat pendent</span>
-            <span class="scoreboard-badge">{{ pendingCount }} multes obertes</span>
+            <span class="scoreboard-label">Multes pel pròxim sopar</span>
           </div>
           <div class="scoreboard-amount">{{ formatMoney(totalBotePendent, false) }}<small> €</small></div>
 
-          <div class="scoreboard-stats">
+          <div class="scoreboard-stats" style="grid-template-columns:repeat(2,1fr);">
             <div class="scoreboard-stat">
-              <div class="v">{{ formatMoney(averageFine, false) }} €</div>
-              <div class="l">Multa mitjana</div>
+              <div class="v">{{ formatMoney(perPlayerShare, false) }} €</div>
+              <div class="l">Import per jugador</div>
             </div>
             <div class="scoreboard-stat">
-              <div class="v">{{ activePlayers.length }}</div>
-              <div class="l">Jugadors actius</div>
-            </div>
-            <div class="scoreboard-stat">
-              <div class="v">{{ topOffender ? topOffender.name.split(' ')[0] : '—' }}</div>
-              <div class="l">Farolillo roig</div>
+              <div class="v">{{ pendingCount }}</div>
+              <div class="l">Multes pendents</div>
             </div>
           </div>
         </div>
@@ -638,7 +633,7 @@
       <section id="tipus">
         <div class="section-head">
           <h2>Tipus de multa</h2>
-          <span class="hint">Normativa del vestidor</span>
+          <span class="hint">Excepció de feina i salut</span>
         </div>
 
         <div v-if="activeTiposMulta.length === 0" class="card state-box">
@@ -656,7 +651,7 @@
 
     </template>
 
-    <footer>AE Minguella · Control de Multes — dades en temps real des de n8n</footer>
+    <footer>AE Minguella · Control de Multes</footer>
   </div>
 
   <!-- ================= MODAL DETALLE JUGADOR ================= -->
@@ -716,7 +711,14 @@ const FALLBACK_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
 async function fetchJson(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} en ${url}`);
-  const data = await res.json();
+  const text = await res.text();
+  if (!text || !text.trim()) return []; // n8n devuelve body vacío si no hay filas
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Resposta no vàlida des de ${url}`);
+  }
   // Soporta tanto array directo como { data: [...] }
   return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
 }
@@ -764,6 +766,9 @@ createApp({
     },
     averageFine() {
       return this.pendingCount ? this.totalBotePendent / this.pendingCount : 0;
+    },
+    perPlayerShare() {
+      return this.activePlayers.length ? this.totalBotePendent / this.activePlayers.length : 0;
     },
     rankingPlayers() {
       const list = this.activePlayers.map(p => {
