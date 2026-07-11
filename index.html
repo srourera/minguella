@@ -66,6 +66,7 @@
     display:flex;
     flex-direction:column;
     line-height:1.1;
+    flex:1;
   }
   .topbar .brand .club{
     font-family:'Oswald',sans-serif;
@@ -78,6 +79,17 @@
     color:#c9cedb;
     letter-spacing:0.03em;
   }
+  .settings-link{
+    flex:0 0 auto;
+    color:#c9cedb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;height:36px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.08);
+  }
+  .settings-link:hover{ background:rgba(255,255,255,0.16); color:#fff; }
 
   /* Quick nav */
   .quicknav{
@@ -211,6 +223,27 @@
     .scoreboard{ animation:none; }
   }
 
+  .assoc-hint{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .assoc-edit-btn{
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--muted);
+    width:26px;height:26px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .assoc-edit-btn:hover{ border-color:var(--navy); color:var(--navy); }
+
   /* ---------- Cards ---------- */
   .card{
     background:var(--surface);
@@ -237,11 +270,17 @@
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
     color:var(--muted);
-    width:22px;
+    width:26px;
     text-align:center;
     flex:0 0 auto;
+    font-size:14px;
   }
-  .player-rank.top{ color:var(--orange); }
+  .player-rank.top{ color:var(--orange); font-size:19px; font-family:'Inter',sans-serif; }
+  .player-card.is-me{
+    border-color:var(--amber);
+    background:#FFFCF0;
+    box-shadow:0 0 0 2px rgba(245,197,24,0.35);
+  }
   .player-avatar{
     width:52px;height:52px;border-radius:50%;
     object-fit:cover;border:2px solid var(--border);
@@ -458,6 +497,33 @@
 
   :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
 
+  [v-cloak]{ display:none; }
+
+  .picker-card{
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:10px 8px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .picker-card:hover{ border-color:var(--navy); background:var(--bg); }
+  .picker-not-player{
+    width:100%;
+    margin-top:12px;
+    background:var(--bg);
+    border:1px dashed var(--border);
+    color:var(--muted);
+    font-weight:600;
+    font-size:13px;
+    padding:10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .picker-not-player:hover{ border-color:var(--muted); color:var(--charcoal); }
+
   @media (max-width:520px){
     .scoreboard-amount{ font-size:40px; }
     .modal-box{ max-height:90vh; }
@@ -465,7 +531,7 @@
 </style>
 </head>
 <body>
-<div id="app">
+<div id="app" v-cloak>
 
   <div class="topbar">
     <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
@@ -473,13 +539,16 @@
       <span class="club">AE MINGUELLA</span>
       <span class="sub">Control de Multes · Senior A</span>
     </div>
+    <a v-if="hasAdminKey" href="/settings" class="settings-link" aria-label="Configuració">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </a>
   </div>
 
   <nav class="quicknav">
     <a href="#resum">Resum</a>
     <a href="#ranquing">Rànquing</a>
-    <a href="#multes">Multes</a>
     <a href="#tipus">Tipus de multa</a>
+    <a href="#multes">Multes</a>
   </nav>
 
   <div class="wrap">
@@ -507,7 +576,11 @@
           </div>
           <div class="scoreboard-amount">{{ formatMoney(totalBotePendent, false) }}<small> €</small></div>
 
-          <div class="scoreboard-stats" style="grid-template-columns:repeat(2,1fr);">
+          <div class="scoreboard-stats" :style="{ gridTemplateColumns: myPlayer ? 'repeat(3,1fr)' : 'repeat(2,1fr)' }">
+            <div v-if="myPlayer" class="scoreboard-stat" style="border-color:rgba(245,197,24,0.5);">
+              <div class="v">{{ formatMoney(myTotalPending, false) }} €</div>
+              <div class="l">Tu multa</div>
+            </div>
             <div class="scoreboard-stat">
               <div class="v">{{ formatMoney(perPlayerShare, false) }} €</div>
               <div class="l">Import per jugador</div>
@@ -517,6 +590,13 @@
               <div class="l">Multes pendents</div>
             </div>
           </div>
+        </div>
+
+        <div class="assoc-hint">
+          <span>{{ myPlayer ? `Estàs associat a ${myPlayer.name}` : 'No estàs associat a cap jugador' }}</span>
+          <button class="assoc-edit-btn" @click="openPlayerPicker(false)" aria-label="Editar associació">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
         </div>
       </section>
 
@@ -537,9 +617,13 @@
             v-for="(player, idx) in rankingPlayers"
             :key="player.id"
             class="card player-card"
+            :class="{ 'is-me': myPlayer && player.id === myPlayer.id }"
             @click="openPlayer(player)"
           >
-            <div class="player-rank" :class="{ top: idx === 0 && player.totalPending > 0 }">{{ idx + 1 }}</div>
+            <div class="player-rank" :class="{ top: idx < 3 }">
+              <template v-if="idx < 3">{{ ['🥇','🥈','🥉'][idx] }}</template>
+              <template v-else>{{ idx + 1 }}</template>
+            </div>
             <img class="player-avatar" :src="player.picture || fallbackAvatar" :alt="player.name" @error="onImgError" />
             <div class="player-main">
               <div class="player-name">{{ player.name }}</div>
@@ -555,6 +639,26 @@
               <div class="player-amount mono" :class="amountClass(player.totalPending)">{{ formatMoney(player.totalPending) }}</div>
               <div class="player-count">{{ player.pendingCount }} multes</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TIPOS DE MULTA ================= -->
+      <section id="tipus">
+        <div class="section-head">
+          <h2>Tipus de multa</h2>
+          <span class="hint">Excepció de feina i salut</span>
+        </div>
+
+        <div v-if="activeTiposMulta.length === 0" class="card state-box">
+          <span class="emoji">📋</span>
+          No hi ha tipus de multa configurats.
+        </div>
+
+        <div v-else>
+          <div v-for="tipo in activeTiposMulta" :key="tipo.id" class="card tipo-card">
+            <div class="tipo-title">{{ tipo.tipo_multa }}</div>
+            <div v-if="tipo.descripcion" class="tipo-desc">{{ tipo.descripcion }}</div>
           </div>
         </div>
       </section>
@@ -629,29 +733,36 @@
         </div>
       </section>
 
-      <!-- ================= TIPOS DE MULTA ================= -->
-      <section id="tipus">
-        <div class="section-head">
-          <h2>Tipus de multa</h2>
-          <span class="hint">Excepció de feina i salut</span>
-        </div>
-
-        <div v-if="activeTiposMulta.length === 0" class="card state-box">
-          <span class="emoji">📋</span>
-          No hi ha tipus de multa configurats.
-        </div>
-
-        <div v-else>
-          <div v-for="tipo in activeTiposMulta" :key="tipo.id" class="card tipo-card">
-            <div class="tipo-title">{{ tipo.tipo_multa }}</div>
-            <div v-if="tipo.descripcion" class="tipo-desc">{{ tipo.descripcion }}</div>
-          </div>
-        </div>
-      </section>
-
     </template>
 
     <footer>AE Minguella · Control de Multes</footer>
+  </div>
+
+  <!-- ================= MODAL SELECCIÓ DE JUGADOR (associació) ================= -->
+  <div v-if="playerPickerOpen" class="modal-overlay" @click="playerPickerCancellable && closePlayerPicker()">
+    <div class="modal-box" @click.stop style="max-width:420px;">
+      <div class="modal-header">
+        <div class="title">
+          <h3>Qui ets?</h3>
+          <span class="amt" style="color:#dfe4f0;">Perquè et puguem destacar al rànquing</span>
+        </div>
+        <button v-if="playerPickerCancellable" class="modal-close" @click="closePlayerPicker">✕</button>
+      </div>
+      <div class="modal-body" style="padding:14px;">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-height:50vh; overflow-y:auto;">
+          <button
+            v-for="p in activePlayers"
+            :key="p.id"
+            class="picker-card"
+            @click="chooseMyPlayer(p)"
+          >
+            <img class="player-avatar" :src="p.picture || fallbackAvatar" :alt="p.name" @error="onImgError" style="width:44px;height:44px;margin:0 auto 6px;" />
+            <div style="font-size:12.5px; font-weight:600; text-align:center;">{{ p.name }}</div>
+          </button>
+        </div>
+        <button class="picker-not-player" @click="chooseNotPlayer">No sóc jugador</button>
+      </div>
+    </div>
   </div>
 
   <!-- ================= MODAL DETALLE JUGADOR ================= -->
@@ -702,6 +813,8 @@ const ENDPOINTS = {
   tipos: `${N8N_BASE_URL}/tipos-multa`,
   multas: `${N8N_BASE_URL}/multas`,
 };
+const ADMIN_KEY_STORAGE = "minguella-admin-key";
+const MY_PLAYER_STORAGE = "minguella-my-player-id";
 // ======================================================================
 
 const FALLBACK_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
@@ -743,6 +856,11 @@ createApp({
         amount: '',
         status: '',
       },
+
+      hasAdminKey: !!localStorage.getItem(ADMIN_KEY_STORAGE),
+      myPlayerId: localStorage.getItem(MY_PLAYER_STORAGE), // null (mai preguntat) | 'none' | '<id>'
+      playerPickerOpen: false,
+      playerPickerCancellable: false,
 
       fallbackAvatar: FALLBACK_AVATAR,
     };
@@ -789,6 +907,16 @@ createApp({
     maxPendingAmount() {
       return Math.max(1, ...this.rankingPlayers.map(p => p.totalPending));
     },
+    myPlayer() {
+      if (!this.myPlayerId || this.myPlayerId === 'none') return null;
+      return this.players.find(p => String(p.id) === String(this.myPlayerId)) || null;
+    },
+    myTotalPending() {
+      if (!this.myPlayer) return 0;
+      return this.pendingMultas
+        .filter(m => m.player_id === this.myPlayer.id)
+        .reduce((s, f) => s + Number(f.amount || 0), 0);
+    },
     selectedPlayerFines() {
       if (!this.selectedPlayer) return [];
       return this.allMultas
@@ -820,6 +948,7 @@ createApp({
         this.tiposMulta = tiposMulta;
         this.allMultas = allMultas;
         this.tableMultas = allMultas;
+        this.checkFirstVisit();
       } catch (e) {
         this.error = `No s'han pogut carregar les dades: ${e.message}. Comprova que N8N_BASE_URL sigui correcta i que el workflow estigui actiu.`;
       } finally {
@@ -870,6 +999,30 @@ createApp({
       document.body.style.overflow = '';
     },
 
+    // ---------- Associació "quin jugador sóc" ----------
+    checkFirstVisit() {
+      if (this.myPlayerId === null) {
+        this.openPlayerPicker(true);
+      }
+    },
+    openPlayerPicker(isFirstVisit) {
+      this.playerPickerCancellable = !isFirstVisit;
+      this.playerPickerOpen = true;
+    },
+    closePlayerPicker() {
+      this.playerPickerOpen = false;
+    },
+    chooseMyPlayer(p) {
+      this.myPlayerId = String(p.id);
+      localStorage.setItem(MY_PLAYER_STORAGE, this.myPlayerId);
+      this.playerPickerOpen = false;
+    },
+    chooseNotPlayer() {
+      this.myPlayerId = 'none';
+      localStorage.setItem(MY_PLAYER_STORAGE, 'none');
+      this.playerPickerOpen = false;
+    },
+
     amountClass(amount) {
       if (amount <= 10) return 'low';
       if (amount <= 25) return 'medium';
@@ -878,7 +1031,7 @@ createApp({
     },
     barWidth(amount) {
       if (!amount) return 2;
-      return Math.max(4, Math.min(100, (amount / this.maxPendingAmount) * 100));
+      return Math.max(4, Math.min(100, (amount / this.totalBotePendent) * 100));
     },
     statusLabel(status) {
       return { pending: 'Pendent', payed: 'Pagada', cancelled: "Anul·lada" }[status] || status;
