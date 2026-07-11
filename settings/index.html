@@ -336,11 +336,12 @@
         <div v-else>
           <div v-for="fine in recentMultas" :key="fine.id" class="list-item">
             <div class="item-main">
-              <div class="item-title mono">{{ formatMoney(fine.amount) }}</div>
-              <div class="item-sub">{{ fine.playerName }} · {{ fine.tipoNombre }}</div>
+              <div class="item-title">{{ fine.playerName }} · {{ fine.tipoNombre }}</div>
+              <div class="item-sub mono">{{ formatMoney(fine.amount) }}</div>
             </div>
             <div class="item-actions">
               <button class="btn btn-ghost btn-sm" @click="openEditWizard(fine)">Editar</button>
+              <button class="btn btn-danger btn-sm" @click="confirmAnularMulta(fine)">Anul·lar</button>
             </div>
           </div>
         </div>
@@ -498,7 +499,9 @@
     <div class="modal-box" @click.stop style="max-width:460px;">
 
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-        <button v-if="wizard.step > 1" class="btn btn-ghost btn-sm" @click="wizardBack">← Enrere</button>
+        <button v-if="wizard.step > 1" class="btn btn-ghost btn-sm" style="padding:8px 10px;" @click="wizardBack" aria-label="Enrere">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
         <h3 style="margin:0; flex:1;">
           {{ wizard.mode === 'edit' ? 'Editar multa' : 'Afegir multa' }}
           <span style="font-size:12px; color:var(--muted); text-transform:none; display:block; font-weight:400;">Pas {{ wizard.step }} de 3</span>
@@ -543,6 +546,10 @@
 
         <!-- Mode crear: botons preestablerts -->
         <div v-if="wizard.mode === 'create'">
+          <div class="field">
+            <label>Motiu (opcional)</label>
+            <input v-model.trim="wizard.reason" type="text" placeholder="Ex: Arribar tard a l'entreno" />
+          </div>
           <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
             <button
               v-for="amt in wizardAmountOptions"
@@ -579,7 +586,7 @@
   <!-- Confirmació de desactivació -->
   <div v-if="confirmTarget" class="modal-overlay" @click="confirmTarget = null">
     <div class="modal-box" @click.stop>
-      <h3>Desactivar {{ confirmTarget.label }}?</h3>
+      <h3>{{ confirmTarget.verb || 'Desactivar' }} {{ confirmTarget.label }}?</h3>
       <p>Aquesta acció no es pot desfer des d'aquí. L'element deixarà d'aparèixer com a actiu.</p>
       <div class="actions-row">
         <button class="btn btn-ghost" @click="confirmTarget = null">Cancel·lar</button>
@@ -613,6 +620,7 @@ const ENDPOINTS = {
   multas: `${N8N_BASE_URL}/multas`,
   multaCreate: `${N8N_BASE_URL}/multas`,
   multaEdit: `${N8N_BASE_URL}/multas/edit`,
+  multasEstado: `${N8N_BASE_URL}/multas/estado`,
 };
 const API_KEY_STORAGE = "minguella-admin-key";
 // ======================================================================
@@ -679,6 +687,7 @@ createApp({
         playerId: null,
         tipoId: null,
         amount: null,
+        reason: '',
         editingMultaId: null,
         showAllAmounts: false,
         saving: false,
@@ -914,7 +923,7 @@ createApp({
       if (!this.requireApiKey()) return;
       this.wizard = {
         open: true, mode: 'create', step: 1,
-        playerId: null, tipoId: null, amount: null,
+        playerId: null, tipoId: null, amount: null, reason: '',
         editingMultaId: null, showAllAmounts: false, saving: false,
       };
     },
@@ -922,7 +931,7 @@ createApp({
       if (!this.requireApiKey()) return;
       this.wizard = {
         open: true, mode: 'edit', step: 1,
-        playerId: fine.player_id, tipoId: fine.tipo_multa_id, amount: fine.amount,
+        playerId: fine.player_id, tipoId: fine.tipo_multa_id, amount: fine.amount, reason: fine.reason || '',
         editingMultaId: fine.id, showAllAmounts: false, saving: false,
       };
     },
@@ -948,6 +957,7 @@ createApp({
           player_id: this.wizard.playerId,
           tipo_multa_id: this.wizard.tipoId,
           amount: amount,
+          reason: this.wizard.reason || null,
         }, this.apiKey);
         this.closeWizard();
         this.showToast('success', `Multa de ${amount}€ afegida.`);
@@ -975,6 +985,25 @@ createApp({
         this.showToast('error', e.message);
       } finally {
         this.wizard.saving = false;
+      }
+    },
+
+    confirmAnularMulta(fine) {
+      if (!this.requireApiKey()) return;
+      this.confirmTarget = {
+        verb: 'Anul·lar',
+        label: `la multa de ${fine.playerName} (${this.formatMoney(fine.amount)})`,
+        run: () => this.anularMulta(fine),
+      };
+    },
+    async anularMulta(fine) {
+      this.confirmTarget = null;
+      try {
+        await apiWrite(ENDPOINTS.multasEstado, 'POST', { ids: [fine.id], status: 'cancelled' }, this.apiKey);
+        this.showToast('success', 'Multa anul·lada.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
       }
     },
 
