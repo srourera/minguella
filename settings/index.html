@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AE Minguella · Administració</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#132A5E;
+    --navy-deep:#0B1B3F;
+    --charcoal:#14161A;
+    --orange:#E8720C;
+    --amber:#F5C518;
+    --bg:#F2F3F6;
+    --surface:#FFFFFF;
+    --success:#2E9E5B;
+    --success-bg:#E4F5EA;
+    --danger:#C74B4B;
+    --danger-bg:#FBEAEA;
+    --muted:#6B7280;
+    --border:#E5E7EB;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(19,42,94,0.08);
+    --shadow-hover:0 8px 22px rgba(19,42,94,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--charcoal);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    margin:0;
+  }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    background:var(--charcoal);
+    color:#fff;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:30;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+  }
+  .topbar img{ width:42px;height:42px;object-fit:contain; }
+  .topbar .brand{ display:flex; flex-direction:column; line-height:1.1; flex:1; }
+  .topbar .brand .club{ font-family:'Oswald',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.05em; }
+  .topbar .brand .sub{ font-size:12px; color:#c9cedb; letter-spacing:0.03em; }
+  .key-btn{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .key-btn:hover{ background:rgba(255,255,255,0.16); }
+  .key-btn .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--danger);
+    flex:0 0 auto;
+  }
+  .key-btn .dot.ok{ background:var(--success); }
+
+  .tabs{
+    display:flex;
+    gap:8px;
+    padding:10px 16px;
+    background:var(--navy-deep);
+    position:sticky;
+    top:70px;
+    z-index:29;
+  }
+  .tabs button{
+    flex:1;
+    background:transparent;
+    color:#dfe4f0;
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:999px;
+    padding:9px 14px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .tabs button.active{
+    background:var(--amber);
+    color:var(--navy-deep);
+    border-color:var(--amber);
+  }
+
+  .wrap{ max-width:760px; margin:0 auto; padding:20px 16px 80px; }
+
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    padding:18px;
+    margin-bottom:18px;
+  }
+  .card h2{ font-size:16px; color:var(--navy-deep); margin-bottom:14px; }
+
+  .field{ margin-bottom:12px; }
+  .field label{
+    display:block;font-size:11.5px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.03em;margin-bottom:5px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    font-size:14.5px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+  }
+  .field textarea{ resize:vertical; min-height:60px; }
+  .field input:focus, .field textarea:focus{
+    outline:none;border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(19,42,94,0.12);
+  }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+
+  .btn{
+    border:none;
+    border-radius:9px;
+    padding:10px 18px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{ background:var(--navy); color:#fff; }
+  .btn-primary:hover{ background:var(--navy-deep); }
+  .btn-primary:disabled{ background:#9aa1ac; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--navy); border:1px solid var(--border); }
+  .btn-ghost:hover{ background:var(--bg); }
+  .btn-danger{ background:transparent; color:var(--danger); border:1px solid #f0c9c9; }
+  .btn-danger:hover{ background:var(--danger-bg); }
+  .btn-sm{ padding:6px 12px; font-size:12.5px; }
+
+  .actions-row{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+
+  .list-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .list-item:last-child{ border-bottom:none; }
+  .avatar{
+    width:46px;height:46px;border-radius:50%;object-fit:cover;
+    border:2px solid var(--border); background:var(--bg); flex:0 0 auto;
+  }
+  .item-main{ flex:1; min-width:0; }
+  .item-title{ font-weight:600; font-size:14.5px; }
+  .item-sub{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .item-actions{ display:flex; gap:6px; flex:0 0 auto; }
+
+  .badge-disabled{
+    font-size:10.5px; font-weight:700; text-transform:uppercase;
+    background:var(--danger-bg); color:var(--danger);
+    padding:3px 8px; border-radius:999px; margin-left:8px;
+  }
+
+  .list-item.is-disabled .item-title,
+  .list-item.is-disabled .item-sub{ color:var(--muted); }
+  .list-item.is-disabled .avatar{ filter:grayscale(100%); opacity:0.7; }
+
+  .section-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px; gap:10px;
+  }
+  .toggle-link{
+    font-size:12.5px; color:var(--muted); text-decoration:underline;
+    cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif;
+  }
+
+  .edit-box{
+    background:var(--bg);
+    border-radius:10px;
+    padding:12px;
+    margin-top:8px;
+  }
+
+  .state-box{ text-align:center; padding:26px 10px; color:var(--muted); font-size:13.5px; }
+  .state-box .emoji{ font-size:26px; display:block; margin-bottom:6px; }
+
+  .error-banner{
+    background:var(--danger-bg); color:var(--danger);
+    border:1px solid #f2c6c6; border-radius:10px;
+    padding:12px 14px; font-size:13.5px; margin-bottom:16px;
+  }
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    padding:12px 20px; border-radius:10px; font-size:14px; font-weight:600;
+    color:#fff; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    max-width:90vw; text-align:center;
+  }
+  .toast.success{ background:var(--success); }
+  .toast.error{ background:var(--danger); }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(11,27,63,0.55);
+    display:flex; align-items:center; justify-content:center; padding:16px; z-index:150;
+  }
+  .modal-box{
+    background:#fff; border-radius:var(--radius); width:100%; max-width:400px;
+    padding:22px; box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+  .modal-box h3{ font-size:16px; color:var(--navy-deep); margin-bottom:14px; }
+  .modal-box p{ font-size:13.5px; color:var(--muted); margin:0 0 16px; font-family:'Inter',sans-serif; text-transform:none; }
+
+  :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
+    <div class="brand">
+      <span class="club">AE MINGUELLA</span>
+      <span class="sub">Administració · Jugadors i Multes</span>
+    </div>
+    <button v-if="apiKey" class="key-btn" @click="changeApiKey">
+      <span class="dot ok"></span>
+      Clau API
+    </button>
+  </div>
+
+  <!-- ================= GATE: introducció de la clau ================= -->
+  <div v-if="!apiKey" class="wrap" style="max-width:420px;">
+    <div class="card" style="margin-top:40px;">
+      <h2>Introdueix la clau d'accés</h2>
+      <p style="font-size:13.5px;color:var(--muted);font-family:'Inter',sans-serif;text-transform:none;margin:0 0 16px;">
+        Cal la clau <code class="mono">x-minguella-key</code> per poder afegir, editar o desactivar dades. Es desarà en aquest navegador i no es tornarà a demanar.
+      </p>
+      <div class="field">
+        <label>Clau (x-minguella-key)</label>
+        <input
+          v-model.trim="keyInput"
+          type="password"
+          placeholder="Enganxa la clau aquí"
+          @keyup.enter="saveApiKey"
+        />
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-primary" :disabled="!keyInput" @click="saveApiKey">Guardar i entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= APP (només amb clau desada) ================= -->
+  <template v-else>
+
+  <div class="tabs">
+    <button :class="{active: activeTab==='jugadors'}" @click="activeTab='jugadors'">Jugadors</button>
+    <button :class="{active: activeTab==='tipos'}" @click="activeTab='tipos'">Tipus de multa</button>
+  </div>
+
+  <div class="wrap">
+
+    <div v-if="error" class="error-banner">{{ error }}</div>
+
+    <!-- ================= JUGADORS ================= -->
+    <div v-if="activeTab === 'jugadors'">
+
+      <div class="card">
+        <h2>Afegir jugador</h2>
+        <div class="field">
+          <label>Nom</label>
+          <input v-model.trim="newPlayer.name" type="text" placeholder="Ex: Marc Rourera" />
+        </div>
+        <div class="field">
+          <label>Foto (URL)</label>
+          <input v-model.trim="newPlayer.picture" type="text" placeholder="https://..." />
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-primary" :disabled="!newPlayer.name || savingPlayer" @click="addPlayer">
+            {{ savingPlayer ? 'Desant…' : '+ Afegir jugador' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2 style="margin-bottom:0">Jugadors ({{ visiblePlayers.length }})</h2>
+          <button class="toggle-link" @click="showDisabledPlayers = !showDisabledPlayers">
+            {{ showDisabledPlayers ? 'Amagar desactivats' : 'Mostrar desactivats' }}
+          </button>
+        </div>
+
+        <div v-if="loading" class="state-box">Carregant…</div>
+        <div v-else-if="visiblePlayers.length === 0" class="state-box">
+          <span class="emoji">🏀</span>
+          Encara no hi ha jugadors. Afegeix-ne un a dalt.
+        </div>
+
+        <div v-else>
+          <div v-for="p in visiblePlayers" :key="p.id" class="list-item" :class="{'is-disabled': p.disabled_at}">
+            <template v-if="editingPlayerId !== p.id">
+              <img class="avatar" :src="p.picture || fallbackAvatar" @error="onImgError" />
+              <div class="item-main">
+                <div class="item-title">
+                  {{ p.name }}
+                  <span v-if="p.disabled_at" class="badge-disabled">Desactivat</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="btn btn-ghost btn-sm" v-if="!p.disabled_at" @click="startEditPlayer(p)">Editar</button>
+                <button class="btn btn-danger btn-sm" v-if="!p.disabled_at" @click="confirmDisablePlayer(p)">Desactivar</button>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="edit-box" style="width:100%">
+                <div class="field">
+                  <label>Nom</label>
+                  <input v-model.trim="editPlayerForm.name" type="text" />
+                </div>
+                <div class="field">
+                  <label>Foto (URL)</label>
+                  <input v-model.trim="editPlayerForm.picture" type="text" />
+                </div>
+                <div class="actions-row">
+                  <button class="btn btn-ghost btn-sm" @click="cancelEditPlayer">Cancel·lar</button>
+                  <button class="btn btn-primary btn-sm" :disabled="savingPlayer" @click="savePlayer(p)">Guardar</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TIPUS DE MULTA ================= -->
+    <div v-if="activeTab === 'tipos'">
+
+      <div class="card">
+        <h2>Afegir tipus de multa</h2>
+        <div class="field">
+          <label>Nom del tipus</label>
+          <input v-model.trim="newTipo.tipo_multa" type="text" placeholder="Ex: Arribar tard a l'entreno" />
+        </div>
+        <div class="field">
+          <label>Descripció / normativa</label>
+          <textarea v-model.trim="newTipo.descripcion" placeholder="Explica la norma i, si cal, excepcions..."></textarea>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-primary" :disabled="!newTipo.tipo_multa || savingTipo" @click="addTipo">
+            {{ savingTipo ? 'Desant…' : '+ Afegir tipus' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2 style="margin-bottom:0">Tipus de multa ({{ visibleTipos.length }})</h2>
+          <button class="toggle-link" @click="showDisabledTipos = !showDisabledTipos">
+            {{ showDisabledTipos ? 'Amagar desactivats' : 'Mostrar desactivats' }}
+          </button>
+        </div>
+
+        <div v-if="loading" class="state-box">Carregant…</div>
+        <div v-else-if="visibleTipos.length === 0" class="state-box">
+          <span class="emoji">📋</span>
+          Encara no hi ha tipus de multa. Afegeix-ne un a dalt.
+        </div>
+
+        <div v-else>
+          <div v-for="t in visibleTipos" :key="t.id" class="list-item" :class="{'is-disabled': t.disabled_at}">
+            <template v-if="editingTipoId !== t.id">
+              <div class="item-main">
+                <div class="item-title">
+                  {{ t.tipo_multa }}
+                  <span v-if="t.disabled_at" class="badge-disabled">Desactivat</span>
+                </div>
+                <div v-if="t.descripcion" class="item-sub">{{ t.descripcion }}</div>
+              </div>
+              <div class="item-actions">
+                <button class="btn btn-ghost btn-sm" v-if="!t.disabled_at" @click="startEditTipo(t)">Editar</button>
+                <button class="btn btn-danger btn-sm" v-if="!t.disabled_at" @click="confirmDisableTipo(t)">Desactivar</button>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="edit-box" style="width:100%">
+                <div class="field">
+                  <label>Nom del tipus</label>
+                  <input v-model.trim="editTipoForm.tipo_multa" type="text" />
+                </div>
+                <div class="field">
+                  <label>Descripció / normativa</label>
+                  <textarea v-model.trim="editTipoForm.descripcion"></textarea>
+                </div>
+                <div class="actions-row">
+                  <button class="btn btn-ghost btn-sm" @click="cancelEditTipo">Cancel·lar</button>
+                  <button class="btn btn-primary btn-sm" :disabled="savingTipo" @click="saveTipo(t)">Guardar</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  </template>
+
+  <!-- Confirmació de desactivació -->
+  <div v-if="confirmTarget" class="modal-overlay" @click="confirmTarget = null">
+    <div class="modal-box" @click.stop>
+      <h3>Desactivar {{ confirmTarget.label }}?</h3>
+      <p>Aquesta acció no es pot desfer des d'aquí. L'element deixarà d'aparèixer com a actiu.</p>
+      <div class="actions-row">
+        <button class="btn btn-ghost" @click="confirmTarget = null">Cancel·lar</button>
+        <button class="btn btn-danger" style="background:var(--danger); color:#fff; border:none;" @click="confirmTarget.run()">
+          Sí, desactivar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div v-if="toast" class="toast" :class="toast.type">{{ toast.message }}</div>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+
+// ======================================================================
+// CONFIGURACIÓ
+// ======================================================================
+const N8N_BASE_URL = "https://n8n.rourera.es/webhook";
+const ENDPOINTS = {
+  players: `${N8N_BASE_URL}/players`,
+  playerById: (id) => `${N8N_BASE_URL}/players/${id}`,
+  playerDisable: (id) => `${N8N_BASE_URL}/players/${id}/disable`,
+  tipos: `${N8N_BASE_URL}/tipos-multa`,
+  tipoById: (id) => `${N8N_BASE_URL}/tipos-multa/${id}`,
+  tipoDisable: (id) => `${N8N_BASE_URL}/tipos-multa/${id}/disable`,
+};
+const API_KEY_STORAGE = "minguella-admin-key";
+// ======================================================================
+
+const FALLBACK_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23E5E7EB'/><text x='50%' y='55%' font-size='26' text-anchor='middle' fill='%236B7280' font-family='sans-serif'>🏀</text></svg>`
+);
+
+async function readBody(res) {
+  const text = await res.text();
+  if (!text || !text.trim()) return null;
+  try { return JSON.parse(text); } catch (e) { return text; }
+}
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  const body = await readBody(res);
+  if (!res.ok) throw new Error(`HTTP ${res.status} en ${url}`);
+  if (Array.isArray(body)) return body;
+  if (Array.isArray(body?.data)) return body.data;
+  return [];
+}
+
+async function apiWrite(url, method, payload, apiKey) {
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-minguella-key': apiKey || '',
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await readBody(res);
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('Clau d\'API incorrecta o absent.');
+  }
+  if (!res.ok) {
+    const msg = (body && body.message) ? body.message : `Error ${res.status}`;
+    throw new Error(msg);
+  }
+  return body;
+}
+
+createApp({
+  data() {
+    return {
+      apiKey: localStorage.getItem(API_KEY_STORAGE) || '',
+      keyInput: '',
+      activeTab: 'jugadors',
+      loading: true,
+      error: '',
+
+      players: [],
+      tiposMulta: [],
+      showDisabledPlayers: false,
+      showDisabledTipos: false,
+
+      newPlayer: { name: '', picture: '' },
+      newTipo: { tipo_multa: '', descripcion: '' },
+
+      editingPlayerId: null,
+      editPlayerForm: { name: '', picture: '' },
+      editingTipoId: null,
+      editTipoForm: { tipo_multa: '', descripcion: '' },
+
+      savingPlayer: false,
+      savingTipo: false,
+
+      confirmTarget: null,
+      toast: null,
+
+      fallbackAvatar: FALLBACK_AVATAR,
+    };
+  },
+
+  computed: {
+    visiblePlayers() {
+      return this.players.filter(p => this.showDisabledPlayers || !p.disabled_at);
+    },
+    visibleTipos() {
+      return this.tiposMulta.filter(t => this.showDisabledTipos || !t.disabled_at);
+    },
+  },
+
+  methods: {
+    async init() {
+      this.loading = true;
+      this.error = '';
+      try {
+        const [players, tiposMulta] = await Promise.all([
+          apiGet(ENDPOINTS.players),
+          apiGet(ENDPOINTS.tipos),
+        ]);
+        this.players = players;
+        this.tiposMulta = tiposMulta;
+      } catch (e) {
+        this.error = `No s'han pogut carregar les dades: ${e.message}`;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    saveApiKey() {
+      if (!this.keyInput) return;
+      this.apiKey = this.keyInput.trim();
+      localStorage.setItem(API_KEY_STORAGE, this.apiKey);
+      this.keyInput = '';
+      this.showToast('success', 'Clau desada.');
+      this.init();
+    },
+
+    changeApiKey() {
+      const value = prompt("Actualitza la clau d'API (x-minguella-key):", this.apiKey || '');
+      if (value !== null && value.trim()) {
+        this.apiKey = value.trim();
+        localStorage.setItem(API_KEY_STORAGE, this.apiKey);
+        this.showToast('success', 'Clau actualitzada.');
+      }
+    },
+
+    showToast(type, message) {
+      this.toast = { type, message };
+      clearTimeout(this._toastTimer);
+      this._toastTimer = setTimeout(() => { this.toast = null; }, 3000);
+    },
+
+    requireApiKey() {
+      if (!this.apiKey) {
+        this.showToast('error', "Cal configurar la clau d'API primer (botó de dalt).");
+        return false;
+      }
+      return true;
+    },
+
+    // ---------- Jugadors ----------
+    async addPlayer() {
+      if (!this.requireApiKey() || !this.newPlayer.name) return;
+      this.savingPlayer = true;
+      try {
+        await apiWrite(ENDPOINTS.players, 'POST', {
+          name: this.newPlayer.name,
+          picture: this.newPlayer.picture || null,
+        }, this.apiKey);
+        this.newPlayer = { name: '', picture: '' };
+        this.showToast('success', 'Jugador afegit.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.savingPlayer = false;
+      }
+    },
+
+    startEditPlayer(p) {
+      this.editingPlayerId = p.id;
+      this.editPlayerForm = { name: p.name, picture: p.picture || '' };
+    },
+    cancelEditPlayer() {
+      this.editingPlayerId = null;
+    },
+    async savePlayer(p) {
+      if (!this.requireApiKey()) return;
+      this.savingPlayer = true;
+      try {
+        await apiWrite(ENDPOINTS.playerById(p.id), 'PATCH', {
+          name: this.editPlayerForm.name,
+          picture: this.editPlayerForm.picture || null,
+        }, this.apiKey);
+        this.editingPlayerId = null;
+        this.showToast('success', 'Jugador actualitzat.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.savingPlayer = false;
+      }
+    },
+    confirmDisablePlayer(p) {
+      if (!this.requireApiKey()) return;
+      this.confirmTarget = {
+        label: p.name,
+        run: () => this.disablePlayer(p),
+      };
+    },
+    async disablePlayer(p) {
+      this.confirmTarget = null;
+      try {
+        await apiWrite(ENDPOINTS.playerDisable(p.id), 'PATCH', {}, this.apiKey);
+        this.showToast('success', `${p.name} desactivat.`);
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      }
+    },
+
+    // ---------- Tipus de multa ----------
+    async addTipo() {
+      if (!this.requireApiKey() || !this.newTipo.tipo_multa) return;
+      this.savingTipo = true;
+      try {
+        await apiWrite(ENDPOINTS.tipos, 'POST', {
+          tipo_multa: this.newTipo.tipo_multa,
+          descripcion: this.newTipo.descripcion || null,
+        }, this.apiKey);
+        this.newTipo = { tipo_multa: '', descripcion: '' };
+        this.showToast('success', 'Tipus de multa afegit.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.savingTipo = false;
+      }
+    },
+    startEditTipo(t) {
+      this.editingTipoId = t.id;
+      this.editTipoForm = { tipo_multa: t.tipo_multa, descripcion: t.descripcion || '' };
+    },
+    cancelEditTipo() {
+      this.editingTipoId = null;
+    },
+    async saveTipo(t) {
+      if (!this.requireApiKey()) return;
+      this.savingTipo = true;
+      try {
+        await apiWrite(ENDPOINTS.tipoById(t.id), 'PATCH', {
+          tipo_multa: this.editTipoForm.tipo_multa,
+          descripcion: this.editTipoForm.descripcion || null,
+        }, this.apiKey);
+        this.editingTipoId = null;
+        this.showToast('success', 'Tipus de multa actualitzat.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.savingTipo = false;
+      }
+    },
+    confirmDisableTipo(t) {
+      if (!this.requireApiKey()) return;
+      this.confirmTarget = {
+        label: t.tipo_multa,
+        run: () => this.disableTipo(t),
+      };
+    },
+    async disableTipo(t) {
+      this.confirmTarget = null;
+      try {
+        await apiWrite(ENDPOINTS.tipoDisable(t.id), 'PATCH', {}, this.apiKey);
+        this.showToast('success', `${t.tipo_multa} desactivat.`);
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      }
+    },
+
+    onImgError(e) {
+      e.target.src = this.fallbackAvatar;
+    },
+  },
+
+  mounted() {
+    this.init();
+  },
+}).mount('#app');
+</script>
+</body>
+</html>
