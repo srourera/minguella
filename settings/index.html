@@ -236,6 +236,13 @@
 
   :focus-visible{ outline:3px solid var(--orange); outline-offset:2px; }
 
+  .status-dot{
+    width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto;
+  }
+  .dot-pending{ background:var(--amber); }
+  .dot-payed{ background:var(--success); }
+  .dot-cancelled{ background:var(--danger); }
+
   .wizard-card{
     background:#fff;
     border:2px solid var(--border);
@@ -337,9 +344,13 @@
           <div v-for="fine in recentMultas" :key="fine.id" class="list-item">
             <div class="item-main">
               <div class="item-title">{{ fine.playerName }} · {{ fine.tipoNombre }}</div>
-              <div class="item-sub mono">{{ formatMoney(fine.amount) }}</div>
+              <div class="item-sub" style="display:flex; align-items:center; gap:6px;">
+                <span class="mono">{{ formatMoney(fine.amount) }}</span>
+                <span class="status-dot" :class="'dot-' + fine.status"></span>
+                <span>{{ statusLabel(fine.status) }}</span>
+              </div>
             </div>
-            <div class="item-actions">
+            <div class="item-actions" v-if="fine.status === 'pending'">
               <button class="btn btn-ghost btn-sm" @click="openEditWizard(fine)">Editar</button>
               <button class="btn btn-danger btn-sm" @click="confirmAnularMulta(fine)">Anul·lar</button>
             </div>
@@ -571,6 +582,10 @@
           <div class="field">
             <label>Import (€)</label>
             <input type="number" step="0.01" v-model.number="wizard.amount" placeholder="Ex: 7.5" />
+          </div>
+          <div class="field">
+            <label>Motiu (opcional)</label>
+            <input v-model.trim="wizard.reason" type="text" placeholder="Ex: Arribar tard a l'entreno" />
           </div>
           <div class="actions-row">
             <button class="btn btn-primary" :disabled="wizard.saving || !wizard.amount" @click="saveEditedMulta">
@@ -977,6 +992,7 @@ createApp({
           player_id: this.wizard.playerId,
           tipo_multa_id: this.wizard.tipoId,
           amount: this.wizard.amount,
+          reason: this.wizard.reason || null,
         }, this.apiKey);
         this.closeWizard();
         this.showToast('success', 'Multa actualitzada.');
@@ -1012,6 +1028,9 @@ createApp({
     },
     formatMoney(n) {
       return `${Number(n || 0).toFixed(2)} €`;
+    },
+    statusLabel(status) {
+      return { pending: 'Pendent', payed: 'Pagada', cancelled: "Anul·lada" }[status] || status;
     },
   },
 
