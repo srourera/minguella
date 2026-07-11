@@ -461,11 +461,11 @@ const { createApp } = Vue;
 const N8N_BASE_URL = "https://n8n.rourera.es/webhook";
 const ENDPOINTS = {
   players: `${N8N_BASE_URL}/players`,
-  playerById: (id) => `${N8N_BASE_URL}/players/${id}`,
-  playerDisable: (id) => `${N8N_BASE_URL}/players/${id}/disable`,
+  playerEdit: `${N8N_BASE_URL}/players/edit`,
+  playerDisable: `${N8N_BASE_URL}/players/disable`,
   tipos: `${N8N_BASE_URL}/tipos-multa`,
-  tipoById: (id) => `${N8N_BASE_URL}/tipos-multa/${id}`,
-  tipoDisable: (id) => `${N8N_BASE_URL}/tipos-multa/${id}/disable`,
+  tipoEdit: `${N8N_BASE_URL}/tipos-multa/edit`,
+  tipoDisable: `${N8N_BASE_URL}/tipos-multa/disable`,
 };
 const API_KEY_STORAGE = "minguella-admin-key";
 // ======================================================================
@@ -630,7 +630,8 @@ createApp({
       if (!this.requireApiKey()) return;
       this.savingPlayer = true;
       try {
-        await apiWrite(ENDPOINTS.playerById(p.id), 'POST', {
+        await apiWrite(ENDPOINTS.playerEdit, 'POST', {
+          id: p.id,
           name: this.editPlayerForm.name,
           picture: this.editPlayerForm.picture || null,
         }, this.apiKey);
@@ -653,7 +654,7 @@ createApp({
     async disablePlayer(p) {
       this.confirmTarget = null;
       try {
-        await apiWrite(ENDPOINTS.playerDisable(p.id), 'POST', {}, this.apiKey);
+        await apiWrite(ENDPOINTS.playerDisable, 'POST', { id: p.id }, this.apiKey);
         this.showToast('success', `${p.name} desactivat.`);
         await this.init();
       } catch (e) {
@@ -690,7 +691,8 @@ createApp({
       if (!this.requireApiKey()) return;
       this.savingTipo = true;
       try {
-        await apiWrite(ENDPOINTS.tipoById(t.id), 'POST', {
+        await apiWrite(ENDPOINTS.tipoEdit, 'POST', {
+          id: t.id,
           tipo_multa: this.editTipoForm.tipo_multa,
           descripcion: this.editTipoForm.descripcion || null,
         }, this.apiKey);
@@ -713,7 +715,7 @@ createApp({
     async disableTipo(t) {
       this.confirmTarget = null;
       try {
-        await apiWrite(ENDPOINTS.tipoDisable(t.id), 'POST', {}, this.apiKey);
+        await apiWrite(ENDPOINTS.tipoDisable, 'POST', { id: t.id }, this.apiKey);
         this.showToast('success', `${t.tipo_multa} desactivat.`);
         await this.init();
       } catch (e) {
