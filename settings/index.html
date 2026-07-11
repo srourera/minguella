@@ -130,7 +130,7 @@
     padding:10px 12px;
     border:1px solid var(--border);
     border-radius:9px;
-    font-size:14.5px;
+    font-size:16px;
     font-family:'Inter',sans-serif;
     background:#fff;
   }
@@ -159,6 +159,7 @@
   .btn-danger{ background:transparent; color:var(--danger); border:1px solid #f0c9c9; }
   .btn-danger:hover{ background:var(--danger-bg); }
   .btn-sm{ padding:6px 12px; font-size:12.5px; }
+  .item-actions .btn{ font-size:11px; padding:5px 9px; }
 
   .actions-row{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
 
@@ -242,6 +243,20 @@
   .dot-pending{ background:var(--amber); }
   .dot-payed{ background:var(--success); }
   .dot-cancelled{ background:var(--danger); }
+
+  .status-badge{
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:3px 9px;
+    border-radius:999px;
+    display:inline-block;
+    white-space:nowrap;
+  }
+  .status-pending{ background:#FFF3CD; color:#8A6D00; }
+  .status-payed{ background:var(--success-bg); color:var(--success); }
+  .status-cancelled{ background:var(--danger-bg); color:var(--danger); }
 
   .wizard-card{
     background:#fff;
@@ -344,10 +359,9 @@
           <div v-for="fine in recentMultas" :key="fine.id" class="list-item">
             <div class="item-main">
               <div class="item-title">{{ fine.playerName }} · {{ fine.tipoNombre }}</div>
-              <div class="item-sub" style="display:flex; align-items:center; gap:6px;">
+              <div class="item-sub" style="display:flex; align-items:center; gap:8px;">
                 <span class="mono">{{ formatMoney(fine.amount) }}</span>
-                <span class="status-dot" :class="'dot-' + fine.status"></span>
-                <span>{{ statusLabel(fine.status) }}</span>
+                <span class="status-badge" :class="'status-' + fine.status">{{ statusLabel(fine.status) }}</span>
               </div>
             </div>
             <div class="item-actions" v-if="fine.status === 'pending'">
