@@ -621,7 +621,7 @@
   <div v-if="confirmTarget" class="modal-overlay" @click="confirmTarget = null">
     <div class="modal-box" @click.stop>
       <h3>{{ confirmTarget.verb || 'Desactivar' }} {{ confirmTarget.label }}?</h3>
-      <p>Aquesta acció no es pot desfer des d'aquí. L'element deixarà d'aparèixer com a actiu.</p>
+      <p>{{ confirmTarget.message || "Aquesta acció no es pot desfer des d'aquí." }}</p>
       <div class="actions-row">
         <button class="btn btn-ghost" @click="confirmTarget = null">Cancel·lar</button>
         <button class="btn btn-danger" style="background:var(--danger); color:#fff; border:none;" @click="confirmTarget.run()">
@@ -807,12 +807,18 @@ createApp({
     },
 
     changeApiKey() {
-      const value = prompt("Actualitza la clau d'API (x-minguella-key):", this.apiKey || '');
-      if (value !== null && value.trim()) {
-        this.apiKey = value.trim();
-        localStorage.setItem(API_KEY_STORAGE, this.apiKey);
-        this.showToast('success', 'Clau actualitzada.');
-      }
+      this.confirmTarget = {
+        verb: 'Canviar',
+        label: "la clau d'API",
+        message: "S'esborrarà la clau actual d'aquest navegador i hauràs de tornar a introduir-la.",
+        run: () => this.resetApiKey(),
+      };
+    },
+    resetApiKey() {
+      this.confirmTarget = null;
+      localStorage.removeItem(API_KEY_STORAGE);
+      this.apiKey = '';
+      this.showToast('success', 'Clau eliminada. Introdueix-ne una nova.');
     },
 
     showToast(type, message) {
