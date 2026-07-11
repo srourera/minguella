@@ -981,6 +981,9 @@ createApp({
     onImgError(e) {
       e.target.src = this.fallbackAvatar;
     },
+    formatMoney(n) {
+      return `${Number(n || 0).toFixed(2)} €`;
+    },
   },
 
   mounted() {
