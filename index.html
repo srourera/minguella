@@ -499,6 +499,44 @@
 
   [v-cloak]{ display:none; }
 
+  .lightbox-overlay{
+    position:fixed; inset:0;
+    background:rgba(6,12,28,0.92);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:24px;
+    z-index:300;
+  }
+  .lightbox-img{
+    max-width:92vw;
+    max-height:78vh;
+    border-radius:16px;
+    object-fit:contain;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .lightbox-caption{
+    color:#fff;
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:15px;
+    margin-top:16px;
+  }
+  .lightbox-close{
+    position:absolute;
+    top:max(16px, env(safe-area-inset-top));
+    right:16px;
+    width:38px;height:38px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.25);
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lightbox-close:hover{ background:rgba(255,255,255,0.22); }
+
   .picker-card{
     background:#fff;
     border:2px solid var(--border);
@@ -624,7 +662,7 @@
               <template v-if="idx < 3">{{ ['🥇','🥈','🥉'][idx] }}</template>
               <template v-else>{{ idx + 1 }}</template>
             </div>
-            <img class="player-avatar" :src="player.picture || fallbackAvatar" :alt="player.name" @error="onImgError" />
+            <img class="player-avatar" :src="player.picture || fallbackAvatar" :alt="player.name" @error="onImgError" @click.stop="openLightbox(player.picture, player.name)" style="cursor:zoom-in;" />
             <div class="player-main">
               <div class="player-name">{{ player.name }}</div>
               <div class="player-bar-track">
@@ -769,7 +807,7 @@
   <div v-if="selectedPlayer" class="modal-overlay" @click="closePlayer">
     <div class="modal-box" @click.stop>
       <div class="modal-header">
-        <img :src="selectedPlayer.picture || fallbackAvatar" :alt="selectedPlayer.name" @error="onImgError" />
+        <img :src="selectedPlayer.picture || fallbackAvatar" :alt="selectedPlayer.name" @error="onImgError" @click="openLightbox(selectedPlayer.picture, selectedPlayer.name)" style="cursor:zoom-in;" />
         <div class="title">
           <h3>{{ selectedPlayer.name }}</h3>
           <span class="amt">{{ formatMoney(selectedPlayer.totalPending) }} pendents</span>
@@ -796,6 +834,12 @@
         </div>
       </div>
     </div>
+  </div>
+  <!-- ================= LIGHTBOX FOTO JUGADOR ================= -->
+  <div v-if="lightboxImage" class="lightbox-overlay" @click="closeLightbox">
+    <button class="lightbox-close" @click="closeLightbox" aria-label="Tancar">✕</button>
+    <img :src="lightboxImage" :alt="lightboxName" class="lightbox-img" @click.stop />
+    <div v-if="lightboxName" class="lightbox-caption">{{ lightboxName }}</div>
   </div>
 
 </div>
@@ -861,6 +905,9 @@ createApp({
       myPlayerId: localStorage.getItem(MY_PLAYER_STORAGE), // null (mai preguntat) | 'none' | '<id>'
       playerPickerOpen: false,
       playerPickerCancellable: false,
+
+      lightboxImage: null,
+      lightboxName: '',
 
       fallbackAvatar: FALLBACK_AVATAR,
     };
@@ -1021,6 +1068,14 @@ createApp({
       this.myPlayerId = 'none';
       localStorage.setItem(MY_PLAYER_STORAGE, 'none');
       this.playerPickerOpen = false;
+    },
+
+    openLightbox(url, name) {
+      this.lightboxImage = url || this.fallbackAvatar;
+      this.lightboxName = name || '';
+    },
+    closeLightbox() {
+      this.lightboxImage = null;
     },
 
     amountClass(amount) {
