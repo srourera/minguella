@@ -150,6 +150,16 @@
     overflow:hidden;
     animation:riseIn .5s ease-out;
   }
+  .scoreboard-avatar{
+    position:absolute;
+    top:16px; right:16px;
+    width:48px; height:48px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid rgba(245,197,24,0.7);
+    cursor:zoom-in;
+    z-index:2;
+  }
   .scoreboard::after{
     content:"";
     position:absolute;
@@ -609,6 +619,14 @@
       <!-- ================= RESUM / SCOREBOARD ================= -->
       <section id="resum">
         <div class="scoreboard">
+          <img
+            v-if="myPlayer"
+            class="scoreboard-avatar"
+            :src="myPlayer.picture || fallbackAvatar"
+            :alt="myPlayer.name"
+            @error="onImgError"
+            @click="openLightbox(myPlayer.picture, myPlayer.name)"
+          />
           <div class="scoreboard-top">
             <span class="scoreboard-label">Multes pel pròxim sopar</span>
           </div>
