@@ -261,6 +261,16 @@
   .status-payed{ background:var(--success-bg); color:var(--success); }
   .status-cancelled{ background:var(--danger-bg); color:var(--danger); }
 
+  .sopar-stat{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 8px;
+    text-align:center;
+  }
+  .sopar-stat .v{ font-size:16px; font-weight:700; color:var(--navy-deep); }
+  .sopar-stat .l{ font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.03em; margin-top:4px; }
+
   .wizard-card{
     background:#fff;
     border:2px solid var(--border);
@@ -336,6 +346,7 @@
 
   <div class="tabs">
     <button :class="{active: activeTab==='multes'}" @click="activeTab='multes'">Multes</button>
+    <button :class="{active: activeTab==='sopar'}" @click="activeTab='sopar'">Sopar</button>
     <button :class="{active: activeTab==='jugadors'}" @click="activeTab='jugadors'">Jugadors</button>
     <button :class="{active: activeTab==='tipos'}" @click="activeTab='tipos'">Tipus de multa</button>
   </div>
@@ -376,6 +387,89 @@
               <button class="btn btn-danger btn-sm" @click="confirmAnularMulta(fine)">Anul·lar</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SOPAR ================= -->
+    <div v-if="activeTab === 'sopar'">
+
+      <div class="card">
+        <h2>Cost del sopar</h2>
+        <div class="field">
+          <label>Cost per persona (€)</label>
+          <input type="number" step="0.01" min="0" v-model.number="sopar.costPerPersona" placeholder="Ex: 25" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2 style="margin-bottom:0">Jugadors que assisteixen ({{ soparSelectedIds.length }})</h2>
+        </div>
+        <div v-if="activePlayers.length === 0" class="state-box">
+          <span class="emoji">🏀</span>
+          Encara no hi ha jugadors.
+        </div>
+        <div v-else style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+          <button
+            v-for="p in activePlayers"
+            :key="p.id"
+            class="wizard-card"
+            :class="{ selected: soparSelectedIds.includes(p.id) }"
+            @click="toggleSoparPlayer(p.id)"
+          >
+            <img class="avatar" :src="p.picture || fallbackAvatar" @error="onImgError" style="width:40px;height:40px;margin:0 auto 6px;" />
+            <div style="font-size:12px; font-weight:600; text-align:center;">{{ p.name }}</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resum global</h2>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+          <div class="sopar-stat">
+            <div class="v mono">{{ formatMoney(soparTotalCena) }}</div>
+            <div class="l">Total sopar</div>
+          </div>
+          <div class="sopar-stat">
+            <div class="v mono">{{ formatMoney(soparTotalMultes) }}</div>
+            <div class="l">Total multes</div>
+          </div>
+          <div class="sopar-stat">
+            <div class="v mono">{{ formatMoney(soparPendent) }}</div>
+            <div class="l">Pendent del sopar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Qui paga què</h2>
+        <div v-if="soparRows.length === 0" class="state-box">
+          <span class="emoji">🍽️</span>
+          Selecciona jugadors per veure el repartiment.
+        </div>
+        <div v-else>
+          <div v-for="row in soparRows" :key="row.id" class="list-item">
+            <div class="item-main">
+              <div class="item-title">{{ row.name }}</div>
+              <div class="item-sub">Multa: {{ formatMoney(row.fineTotal) }} + repartiment: {{ formatMoney(row.extra) }}</div>
+            </div>
+            <div class="item-actions">
+              <div class="mono" style="font-weight:700; font-size:15px;">{{ formatMoney(row.toPay) }}</div>
+            </div>
+          </div>
+          <div class="list-item" style="border-top:2px solid var(--border); font-weight:700;">
+            <div class="item-main">Total</div>
+            <div class="item-actions">
+              <div class="mono" style="font-weight:700; font-size:15px;">{{ formatMoney(soparRowsTotal) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-row" style="margin-top:14px;">
+          <button class="btn btn-primary" :disabled="soparPendingFineIds.length === 0 || markingPaid" @click="confirmMarkSoparPaid">
+            {{ markingPaid ? 'Marcant…' : 'Marcar multes pagades' }}
+          </button>
         </div>
       </div>
     </div>
@@ -734,6 +828,10 @@ createApp({
       newPlayer: { name: '', picture: '' },
       newTipo: { tipo_multa: '', descripcion: '' },
 
+      sopar: { costPerPersona: null },
+      soparSelectedIds: [],
+      markingPaid: false,
+
       editingPlayerId: null,
       editPlayerForm: { name: '', picture: '' },
       editingTipoId: null,
@@ -776,6 +874,52 @@ createApp({
           playerName: (this.players.find(p => p.id === m.player_id) || {}).name || `Jugador #${m.player_id}`,
           tipoNombre: (this.tiposMulta.find(t => t.id === m.tipo_multa_id) || {}).tipo_multa || `Tipus #${m.tipo_multa_id}`,
         }));
+    },
+
+    // ---------- Sopar ----------
+    soparPendingMultas() {
+      return this.multas.filter(m => m.status === 'pending');
+    },
+    soparPlayerFineTotal() {
+      const totals = {};
+      for (const m of this.soparPendingMultas) {
+        totals[m.player_id] = (totals[m.player_id] || 0) + Number(m.amount || 0);
+      }
+      return totals;
+    },
+    soparTotalCena() {
+      return (Number(this.sopar.costPerPersona) || 0) * this.soparSelectedIds.length;
+    },
+    soparTotalMultes() {
+      return this.soparSelectedIds.reduce((s, id) => s + (this.soparPlayerFineTotal[id] || 0), 0);
+    },
+    soparPendent() {
+      return this.soparTotalCena - this.soparTotalMultes;
+    },
+    soparExtraPerPlayer() {
+      return this.soparSelectedIds.length ? this.soparPendent / this.soparSelectedIds.length : 0;
+    },
+    soparRows() {
+      return this.soparSelectedIds.map(id => {
+        const player = this.players.find(p => p.id === id) || {};
+        const fineTotal = this.soparPlayerFineTotal[id] || 0;
+        const extra = this.soparExtraPerPlayer;
+        return {
+          id,
+          name: player.name || `Jugador #${id}`,
+          fineTotal,
+          extra,
+          toPay: fineTotal + extra,
+        };
+      });
+    },
+    soparRowsTotal() {
+      return this.soparRows.reduce((s, r) => s + r.toPay, 0);
+    },
+    soparPendingFineIds() {
+      return this.soparPendingMultas
+        .filter(m => this.soparSelectedIds.includes(m.player_id))
+        .map(m => m.id);
     },
   },
 
@@ -1058,6 +1202,35 @@ createApp({
         await this.init();
       } catch (e) {
         this.showToast('error', e.message);
+      }
+    },
+
+    // ---------- Sopar ----------
+    toggleSoparPlayer(id) {
+      const idx = this.soparSelectedIds.indexOf(id);
+      if (idx === -1) this.soparSelectedIds.push(id);
+      else this.soparSelectedIds.splice(idx, 1);
+    },
+    confirmMarkSoparPaid() {
+      if (!this.requireApiKey() || this.soparPendingFineIds.length === 0) return;
+      this.confirmTarget = {
+        verb: 'Marcar pagades',
+        label: `${this.soparPendingFineIds.length} multa(es) dels jugadors seleccionats`,
+        message: 'Es marcaran com a pagades totes les multes pendents dels jugadors seleccionats.',
+        run: () => this.markSoparPaid(),
+      };
+    },
+    async markSoparPaid() {
+      this.confirmTarget = null;
+      this.markingPaid = true;
+      try {
+        await apiWrite(ENDPOINTS.multasEstado, 'POST', { ids: this.soparPendingFineIds, status: 'payed' }, this.apiKey);
+        this.showToast('success', 'Multes marcades com a pagades.');
+        await this.init();
+      } catch (e) {
+        this.showToast('error', e.message);
+      } finally {
+        this.markingPaid = false;
       }
     },
 
