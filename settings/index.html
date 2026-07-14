@@ -721,7 +721,7 @@
       <div class="actions-row">
         <button class="btn btn-ghost" @click="confirmTarget = null">Cancel·lar</button>
         <button class="btn btn-danger" style="background:var(--danger); color:#fff; border:none;" @click="confirmTarget.run()">
-          Sí, desactivar
+          Sí, {{ (confirmTarget.verb || 'Desactivar').toLowerCase() }}
         </button>
       </div>
     </div>
