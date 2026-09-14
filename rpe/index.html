@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AE Minguella · RPE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#132A5E;
+    --navy-deep:#0B1B3F;
+    --charcoal:#14161A;
+    --orange:#E8720C;
+    --amber:#F5C518;
+    --bg:#F2F3F6;
+    --surface:#FFFFFF;
+    --success:#2E9E5B;
+    --success-bg:#E4F5EA;
+    --danger:#C74B4B;
+    --danger-bg:#FBEAEA;
+    --muted:#6B7280;
+    --border:#E5E7EB;
+    --radius:16px;
+    --shadow:0 2px 10px rgba(19,42,94,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--charcoal);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+  h1,h2,h3{
+    font-family:'Oswald',sans-serif;
+    letter-spacing:0.01em;
+    margin:0;
+  }
+  [v-cloak]{ display:none; }
+
+  #app{
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- Top bar with progress ---------- */
+  .topbar{
+    background:var(--charcoal);
+    padding:14px 18px calc(14px + env(safe-area-inset-top)/3);
+    padding-top:calc(14px + env(safe-area-inset-top));
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .back-btn{
+    width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+    cursor:pointer;
+  }
+  .back-btn:disabled{ opacity:0; pointer-events:none; }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:rgba(255,255,255,0.14);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--amber),var(--orange));
+    border-radius:99px;
+    transition:width .3s ease;
+  }
+  .step-count{
+    color:#c9cedb;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    flex:0 0 auto;
+  }
+
+  /* ---------- Main step area ---------- */
+  .step-wrap{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:28px 20px 40px;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
+  }
+  .step-eyebrow{
+    font-size:34px;
+    line-height:1;
+    margin-bottom:14px;
+  }
+  .step-title{
+    font-size:23px;
+    font-weight:600;
+    color:var(--navy-deep);
+    margin-bottom:6px;
+  }
+  .step-subtitle{
+    font-size:13.5px;
+    color:var(--muted);
+    margin-bottom:28px;
+  }
+
+  /* ---------- Player grid ---------- */
+  .option-grid-players{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+  .player-option{
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:14px 8px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .player-option:active{ transform:scale(0.97); }
+  .player-option img{
+    width:48px; height:48px; border-radius:50%; object-fit:cover;
+    border:2px solid var(--border); background:var(--bg);
+    margin:0 auto 8px; display:block;
+  }
+  .player-option .name{ font-size:12.5px; font-weight:600; text-align:center; }
+
+  /* ---------- Scale 1-10 (difficulty) ---------- */
+  .option-grid-scale10{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+  }
+  .scale-btn{
+    aspect-ratio:1;
+    border-radius:14px;
+    border:2px solid var(--border);
+    background:var(--surface);
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:19px;
+    color:var(--navy-deep);
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease, background .15s ease;
+  }
+  .scale-btn:active{ transform:scale(0.94); }
+  .scale-endpoints{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:10px;
+    padding:0 2px;
+  }
+
+  /* ---------- Scale 1-5 (labeled) ---------- */
+  .option-list-scale5{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .scale5-btn{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:14px 16px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    text-align:left;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .scale5-btn:active{ transform:scale(0.98); }
+  .scale5-num{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700; font-size:14px;
+    color:#fff;
+    flex:0 0 auto;
+  }
+  .scale5-label{ font-size:14.5px; font-weight:600; color:var(--charcoal); }
+
+  /* ---------- Done screen ---------- */
+  .done-wrap{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:32px;
+  }
+  .done-emoji{ font-size:56px; margin-bottom:18px; }
+  .done-title{ font-size:24px; font-weight:600; color:var(--navy-deep); margin-bottom:8px; }
+  .done-sub{ font-size:14px; color:var(--muted); margin-bottom:28px; max-width:320px; }
+  .btn{
+    border:none; border-radius:11px; padding:13px 24px;
+    font-size:15px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{ background:var(--navy); color:#fff; }
+  .btn-primary:disabled{ background:#9aa1ac; cursor:not-allowed; }
+
+  .error-banner{
+    background:var(--danger-bg); color:var(--danger);
+    border:1px solid #f2c6c6; border-radius:10px;
+    padding:12px 14px; font-size:13.5px; margin-bottom:20px;
+  }
+
+  .state-box{ text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .player-option, .scale-btn, .scale5-btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+
+  <div class="topbar">
+    <button class="back-btn" :disabled="stepIndex === 0 || submitted" @click="back" aria-label="Enrere">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="progress-track">
+      <div class="progress-fill" :style="{ width: (submitted ? 100 : (stepIndex / steps.length) * 100) + '%' }"></div>
+    </div>
+    <span v-if="!submitted" class="step-count">{{ stepIndex + 1 }}/{{ steps.length }}</span>
+  </div>
+
+  <div v-if="loadingPlayers" class="state-box">Carregant…</div>
+
+  <template v-else-if="submitted">
+    <div class="done-wrap">
+      <div class="done-emoji">✅</div>
+      <div class="done-title">Registre desat</div>
+      <div class="done-sub">Gràcies{{ playerFirstName ? ', ' + playerFirstName : '' }}! Les teves respostes ja s'han enviat a l'equip tècnic.</div>
+      <button class="btn btn-primary" @click="restart">Omplir un altre registre</button>
+    </div>
+  </template>
+
+  <template v-else>
+    <div class="step-wrap">
+
+      <div v-if="error" class="error-banner">{{ error }}</div>
+
+      <!-- PAS: Jugador -->
+      <template v-if="currentStepKey === 'player'">
+        <div class="step-eyebrow">🏀</div>
+        <div class="step-title">Qui ets?</div>
+        <div class="step-subtitle">Selecciona el teu nom per registrar el teu benestar.</div>
+        <div class="option-grid-players">
+          <button v-for="p in activePlayers" :key="p.id" class="player-option" @click="selectPlayer(p)">
+            <img :src="p.picture || fallbackAvatar" :alt="p.name" @error="onImgError" />
+            <div class="name">{{ p.name }}</div>
+          </button>
+        </div>
+      </template>
+
+      <!-- PAS: Duresa (1-10) -->
+      <template v-else-if="currentStepKey === 'difficulty'">
+        <div class="step-eyebrow">🥵</div>
+        <div class="step-title">Com de dur ha estat l'entreno o partit?</div>
+        <div class="step-subtitle">Tria un valor de l'1 al 10.</div>
+        <div class="option-grid-scale10">
+          <button v-for="n in 10" :key="n" class="scale-btn" @click="choose('difficulty', n)">{{ n }}</button>
+        </div>
+        <div class="scale-endpoints">
+          <span>1 · molt suau</span>
+          <span>10 · màxim esforç</span>
+        </div>
+      </template>
+
+      <!-- PAS: Qualitat del son -->
+      <template v-else-if="currentStepKey === 'sleep'">
+        <div class="step-eyebrow">😴</div>
+        <div class="step-title">Com ha estat la qualitat del teu son?</div>
+        <div class="step-subtitle">Pensa en la nit anterior.</div>
+        <div class="option-list-scale5">
+          <button v-for="opt in sleepOptions" :key="opt.value" class="scale5-btn" @click="choose('sleep', opt.value)">
+            <span class="scale5-num" :style="{ background: scaleColor(opt.value) }">{{ opt.value }}</span>
+            <span class="scale5-label">{{ opt.label }}</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- PAS: Cansament -->
+      <template v-else-if="currentStepKey === 'fatigue'">
+        <div class="step-eyebrow">🔋</div>
+        <div class="step-title">Com és el teu nivell de cansament?</div>
+        <div class="step-subtitle">Com et sents ara mateix.</div>
+        <div class="option-list-scale5">
+          <button v-for="opt in fatigueOptions" :key="opt.value" class="scale5-btn" @click="choose('fatigue', opt.value)">
+            <span class="scale5-num" :style="{ background: scaleColor(opt.value) }">{{ opt.value }}</span>
+            <span class="scale5-label">{{ opt.label }}</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- PAS: Dolor muscular -->
+      <template v-else-if="currentStepKey === 'soreness'">
+        <div class="step-eyebrow">💪</div>
+        <div class="step-title">Com és el teu dolor muscular?</div>
+        <div class="step-subtitle">Agulletes o molèsties actuals.</div>
+        <div class="option-list-scale5">
+          <button v-for="opt in sorenessOptions" :key="opt.value" class="scale5-btn" @click="choose('soreness', opt.value)">
+            <span class="scale5-num" :style="{ background: scaleColor(opt.value) }">{{ opt.value }}</span>
+            <span class="scale5-label">{{ opt.label }}</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- PAS: Estrès -->
+      <template v-else-if="currentStepKey === 'stress'">
+        <div class="step-eyebrow">😣</div>
+        <div class="step-title">Com és el teu nivell d'estrès?</div>
+        <div class="step-subtitle">Dins i fora de la pista.</div>
+        <div class="option-list-scale5">
+          <button v-for="opt in stressOptions" :key="opt.value" class="scale5-btn" @click="choose('stress', opt.value)">
+            <span class="scale5-num" :style="{ background: scaleColor(opt.value) }">{{ opt.value }}</span>
+            <span class="scale5-label">{{ opt.label }}</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- PAS: Estat d'ànim -->
+      <template v-else-if="currentStepKey === 'mood'">
+        <div class="step-eyebrow">🙂</div>
+        <div class="step-title">Com és el teu estat d'ànim?</div>
+        <div class="step-subtitle">L'últim pas!</div>
+        <div class="option-list-scale5">
+          <button v-for="opt in moodOptions" :key="opt.value" class="scale5-btn" @click="choose('mood', opt.value)">
+            <span class="scale5-num" :style="{ background: scaleColor(opt.value) }">{{ opt.value }}</span>
+            <span class="scale5-label">{{ opt.label }}</span>
+          </button>
+        </div>
+      </template>
+
+      <div v-if="submitting" class="state-box">Enviant…</div>
+    </div>
+  </template>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+
+// ======================================================================
+// CONFIGURACIÓ
+// ======================================================================
+const N8N_BASE_URL = "https://n8n.rourera.es/webhook";
+const PLAYERS_ENDPOINT = `${N8N_BASE_URL}/players`;
+const RPE_ENDPOINT = "https://n8n.rourera.es/webhook/minguella/rpe-form";
+const MY_PLAYER_STORAGE = "minguella-my-player-id";
+// ======================================================================
+
+const FALLBACK_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23E5E7EB'/><text x='50%' y='55%' font-size='26' text-anchor='middle' fill='%236B7280' font-family='sans-serif'>🏀</text></svg>`
+);
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  if (!text || !text.trim()) return [];
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return []; }
+  return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+}
+
+const SCALE5 = (labels) => labels.map((label, i) => ({ value: i + 1, label }));
+
+createApp({
+  data() {
+    return {
+      players: [],
+      loadingPlayers: true,
+
+      myPlayerId: localStorage.getItem(MY_PLAYER_STORAGE),
+      initialNeedsPlayerStep: !localStorage.getItem(MY_PLAYER_STORAGE) || localStorage.getItem(MY_PLAYER_STORAGE) === 'none',
+      selectedPlayerId: null,
+
+      stepIndex: 0,
+      answers: {
+        difficulty: null,
+        sleep: null,
+        fatigue: null,
+        soreness: null,
+        stress: null,
+        mood: null,
+      },
+
+      submitting: false,
+      submitted: false,
+      error: '',
+
+      sleepOptions: SCALE5(['Molt dolenta', 'Dolenta', 'Normal', 'Bona', 'Excel·lent']),
+      fatigueOptions: SCALE5(['Molt cansat', 'Cansat', 'Normal', 'Poc cansat', 'Sense cansament']),
+      sorenessOptions: SCALE5(['Molt de dolor', 'Amb dolor', 'Normal', 'Poc dolor', 'Sense dolor']),
+      stressOptions: SCALE5(["Molt d'estrès", 'Amb estrès', 'Normal', 'Poc estrès', "Sense estrès"]),
+      moodOptions: SCALE5(['Molt baix', 'Baix', 'Normal', 'Bo', 'Molt bo']),
+
+      fallbackAvatar: FALLBACK_AVATAR,
+    };
+  },
+
+  computed: {
+    activePlayers() {
+      return this.players.filter(p => !p.disabled_at);
+    },
+    needsPlayerStep() {
+      return !this.myPlayerId || this.myPlayerId === 'none';
+    },
+    steps() {
+      const qs = ['difficulty', 'sleep', 'fatigue', 'soreness', 'stress', 'mood'];
+      return this.initialNeedsPlayerStep ? ['player', ...qs] : qs;
+    },
+    currentStepKey() {
+      return this.steps[this.stepIndex];
+    },
+    currentPlayerId() {
+      return this.selectedPlayerId || (this.myPlayerId && this.myPlayerId !== 'none' ? Number(this.myPlayerId) : null);
+    },
+    playerFirstName() {
+      const p = this.players.find(pl => pl.id === this.currentPlayerId);
+      return p ? p.name.split(' ')[0] : '';
+    },
+  },
+
+  methods: {
+    async init() {
+      this.loadingPlayers = true;
+      try {
+        this.players = await fetchJson(PLAYERS_ENDPOINT);
+      } catch (e) {
+        this.error = "No s'han pogut carregar els jugadors.";
+      } finally {
+        this.loadingPlayers = false;
+      }
+    },
+
+    selectPlayer(p) {
+      this.selectedPlayerId = p.id;
+      this.myPlayerId = String(p.id);
+      localStorage.setItem(MY_PLAYER_STORAGE, this.myPlayerId);
+      this.advance();
+    },
+
+    choose(key, value) {
+      this.answers[key] = value;
+      this.advance();
+    },
+
+    advance() {
+      this.error = '';
+      if (this.stepIndex < this.steps.length - 1) {
+        this.stepIndex += 1;
+      } else {
+        this.submit();
+      }
+    },
+
+    back() {
+      if (this.stepIndex > 0) this.stepIndex -= 1;
+    },
+
+    scaleColor(value) {
+      const colors = { 1: '#C74B4B', 2: '#E8720C', 3: '#F5C518', 4: '#7FB88A', 5: '#2E9E5B' };
+      return colors[value] || 'var(--muted)';
+    },
+
+    async submit() {
+      this.submitting = true;
+      this.error = '';
+      try {
+        const res = await fetch(RPE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            player_id: this.currentPlayerId,
+            difficulty: this.answers.difficulty,
+            sleep_quality: this.answers.sleep,
+            fatigue: this.answers.fatigue,
+            muscle_soreness: this.answers.soreness,
+            stress: this.answers.stress,
+            mood: this.answers.mood,
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        this.submitted = true;
+      } catch (e) {
+        this.error = "No s'ha pogut enviar el registre. Torna-ho a provar.";
+        this.stepIndex = this.steps.length - 1;
+      } finally {
+        this.submitting = false;
+      }
+    },
+
+    restart() {
+      this.answers = { difficulty: null, sleep: null, fatigue: null, soreness: null, stress: null, mood: null };
+      this.stepIndex = 0;
+      this.submitted = false;
+      this.error = '';
+    },
+
+    onImgError(e) {
+      e.target.src = this.fallbackAvatar;
+    },
+  },
+
+  mounted() {
+    this.init();
+  },
+}).mount('#app');
+</script>
+</body>
+</html>
