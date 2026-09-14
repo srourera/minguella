@@ -26,7 +26,7 @@
     --shadow:0 2px 10px rgba(19,42,94,0.08);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;}
+  html,body{margin:0;padding:0;height:100%;overflow-x:hidden;}
   body{
     background:var(--bg);
     font-family:'Inter',sans-serif;
@@ -49,11 +49,38 @@
     flex-direction:column;
   }
 
+  /* ---------- Brand header (like the rest of the app) ---------- */
+  .brand-bar{
+    background:var(--charcoal);
+    color:#fff;
+    padding:12px 18px;
+    padding-top:calc(12px + env(safe-area-inset-top));
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-bar img{ width:36px; height:36px; object-fit:contain; flex:0 0 auto; }
+  .brand-bar .brand{ display:flex; flex-direction:column; line-height:1.1; flex:1; min-width:0; }
+  .brand-bar .club{ font-family:'Oswald',sans-serif; font-size:14px; font-weight:600; letter-spacing:0.05em; }
+  .brand-bar .sub{ font-size:11.5px; color:#c9cedb; letter-spacing:0.03em; }
+  .player-chip{
+    display:flex; align-items:center; gap:8px;
+    flex:0 0 auto;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:999px;
+    padding:4px 12px 4px 4px;
+  }
+  .player-chip img{
+    width:28px; height:28px; border-radius:50%; object-fit:cover;
+    border:1.5px solid var(--amber);
+  }
+  .player-chip span{ font-size:12px; font-weight:600; color:#fff; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
   /* ---------- Top bar with progress ---------- */
   .topbar{
-    background:var(--charcoal);
-    padding:14px 18px calc(14px + env(safe-area-inset-top)/3);
-    padding-top:calc(14px + env(safe-area-inset-top));
+    background:var(--navy-deep);
+    padding:12px 18px;
     display:flex;
     align-items:center;
     gap:12px;
@@ -93,7 +120,7 @@
     flex:1;
     display:flex;
     flex-direction:column;
-    padding:28px 20px 40px;
+    padding:28px 20px calc(40px + env(safe-area-inset-bottom));
     max-width:520px;
     width:100%;
     margin:0 auto;
@@ -140,23 +167,44 @@
 
   /* ---------- Scale 1-10 (difficulty) ---------- */
   .option-grid-scale10{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
+    display:flex;
+    flex-direction:column;
     gap:10px;
   }
-  .scale-btn{
-    aspect-ratio:1;
-    border-radius:14px;
-    border:2px solid var(--border);
+  .scale10-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
     background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:10px 14px;
+  }
+  .scale10-label{
+    flex:1;
+    font-size:14px;
+    font-weight:600;
+    color:var(--charcoal);
+    min-width:0;
+  }
+  .scale10-nums{
+    display:flex;
+    gap:8px;
+    flex:0 0 auto;
+  }
+  .scale-btn{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:none;
     font-family:'JetBrains Mono',monospace;
     font-weight:700;
-    font-size:19px;
-    color:var(--navy-deep);
+    font-size:15px;
+    color:#fff;
     cursor:pointer;
-    transition:border-color .15s ease, transform .1s ease, background .15s ease;
+    transition:transform .1s ease;
+    flex:0 0 auto;
   }
-  .scale-btn:active{ transform:scale(0.94); }
+  .scale-btn:active{ transform:scale(0.9); }
   .scale-endpoints{
     display:flex;
     justify-content:space-between;
@@ -228,10 +276,38 @@
   @media (prefers-reduced-motion: reduce){
     .player-option, .scale-btn, .scale5-btn{ transition:none; }
   }
+
+  @media (max-width:360px){
+    .step-wrap{ padding-left:14px; padding-right:14px; }
+    .step-title{ font-size:20px; }
+    .step-eyebrow{ font-size:28px; }
+    .option-grid-players{ gap:8px; }
+    .scale5-btn{ padding:12px 12px; gap:10px; }
+    .scale10-row{ padding:9px 10px; gap:8px; }
+    .scale-btn{ width:38px; height:38px; font-size:14px; }
+    .scale10-label{ font-size:13px; }
+  }
+
+  @media (min-width:600px){
+    .step-wrap{ padding-top:48px; }
+    .option-grid-players{ grid-template-columns:repeat(4,1fr); }
+  }
 </style>
 </head>
 <body>
 <div id="app" v-cloak>
+
+  <div class="brand-bar">
+    <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
+    <div class="brand">
+      <span class="club">AE MINGUELLA</span>
+      <span class="sub">Registre de benestar (RPE)</span>
+    </div>
+    <div v-if="currentPlayer" class="player-chip">
+      <img :src="currentPlayer.picture || fallbackAvatar" :alt="currentPlayer.name" @error="onImgError" />
+      <span>{{ currentPlayer.name.split(' ')[0] }}</span>
+    </div>
+  </div>
 
   <div class="topbar">
     <button class="back-btn" :disabled="stepIndex === 0 || submitted" @click="back" aria-label="Enrere">
@@ -278,11 +354,18 @@
         <div class="step-title">Com de dur ha estat l'entreno o partit?</div>
         <div class="step-subtitle">Tria un valor de l'1 al 10.</div>
         <div class="option-grid-scale10">
-          <button v-for="n in 10" :key="n" class="scale-btn" @click="choose('difficulty', n)">{{ n }}</button>
-        </div>
-        <div class="scale-endpoints">
-          <span>1 · molt suau</span>
-          <span>10 · màxim esforç</span>
+          <div v-for="band in difficultyBands" :key="band.label" class="scale10-row">
+            <span class="scale10-label">{{ band.label }}</span>
+            <div class="scale10-nums">
+              <button
+                v-for="n in band.values"
+                :key="n"
+                class="scale-btn"
+                :style="{ background: band.color }"
+                @click="choose('difficulty', n)"
+              >{{ n }}</button>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -416,6 +499,14 @@ createApp({
       stressOptions: SCALE5(["Molt d'estrès", 'Amb estrès', 'Normal', 'Poc estrès', "Sense estrès"]),
       moodOptions: SCALE5(['Molt baix', 'Baix', 'Normal', 'Bo', 'Molt bo']),
 
+      difficultyBands: [
+        { label: 'Molt suau', values: [1, 2], color: '#2E9E5B' },
+        { label: 'Suau', values: [3, 4], color: '#7FB88A' },
+        { label: 'Moderat', values: [5, 6], color: '#F5C518' },
+        { label: 'Dur', values: [7, 8], color: '#E8720C' },
+        { label: 'Màxim esforç', values: [9, 10], color: '#C74B4B' },
+      ],
+
       fallbackAvatar: FALLBACK_AVATAR,
     };
   },
@@ -436,6 +527,9 @@ createApp({
     },
     currentPlayerId() {
       return this.selectedPlayerId || (this.myPlayerId && this.myPlayerId !== 'none' ? Number(this.myPlayerId) : null);
+    },
+    currentPlayer() {
+      return this.players.find(p => p.id === this.currentPlayerId) || null;
     },
     playerFirstName() {
       const p = this.players.find(pl => pl.id === this.currentPlayerId);
