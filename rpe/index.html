@@ -167,51 +167,38 @@
 
   /* ---------- Scale 1-10 (difficulty) ---------- */
   .option-grid-scale10{
-    display:flex;
-    flex-direction:column;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
     gap:10px;
   }
-  .scale10-row{
+  .scale10-card{
     display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:14px;
     background:var(--surface);
     border:2px solid var(--border);
     border-radius:14px;
-    padding:10px 14px;
-  }
-  .scale10-label{
-    flex:1;
-    font-size:14px;
-    font-weight:600;
-    color:var(--charcoal);
-    min-width:0;
-  }
-  .scale10-nums{
-    display:flex;
-    gap:8px;
-    flex:0 0 auto;
-  }
-  .scale-btn{
-    width:42px; height:42px;
-    border-radius:50%;
-    border:none;
-    font-family:'JetBrains Mono',monospace;
-    font-weight:700;
-    font-size:15px;
-    color:#fff;
+    padding:12px 4px;
     cursor:pointer;
-    transition:transform .1s ease;
+    transition:transform .1s ease, border-color .15s ease;
+  }
+  .scale10-card:active{ transform:scale(0.94); }
+  .scale10-num{
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700; font-size:14px;
+    color:#fff;
+    margin-bottom:6px;
     flex:0 0 auto;
   }
-  .scale-btn:active{ transform:scale(0.9); }
-  .scale-endpoints{
-    display:flex;
-    justify-content:space-between;
-    font-size:11.5px;
+  .scale10-card-label{
+    font-size:9.5px;
+    font-weight:600;
     color:var(--muted);
-    margin-top:10px;
-    padding:0 2px;
+    text-align:center;
+    line-height:1.2;
   }
 
   /* ---------- Scale 1-5 (labeled) ---------- */
@@ -298,11 +285,13 @@
 <div id="app" v-cloak>
 
   <div class="brand-bar">
-    <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
-    <div class="brand">
-      <span class="club">AE MINGUELLA</span>
-      <span class="sub">Registre de benestar (RPE)</span>
-    </div>
+    <a href="/minguella" style="display:flex; align-items:center; gap:12px; flex:1; min-width:0; text-decoration:none; color:inherit;">
+      <img src="https://res.cloudinary.com/srourera/image/upload/w_1000,ar_1:1,c_fill,g_auto,e_art:hokusai/v1756555944/minguella/agrupacio-esportiva-minguella-escut_eri68n.jpg" alt="Escut AE Minguella" />
+      <div class="brand">
+        <span class="club">AE MINGUELLA</span>
+        <span class="sub">Registre de benestar (RPE)</span>
+      </div>
+    </a>
     <div v-if="currentPlayer" class="player-chip">
       <img :src="currentPlayer.picture || fallbackAvatar" :alt="currentPlayer.name" @error="onImgError" />
       <span>{{ currentPlayer.name.split(' ')[0] }}</span>
@@ -354,18 +343,15 @@
         <div class="step-title">Com de dur ha estat l'entreno o partit?</div>
         <div class="step-subtitle">Tria un valor de l'1 al 10.</div>
         <div class="option-grid-scale10">
-          <div v-for="band in difficultyBands" :key="band.label" class="scale10-row">
-            <span class="scale10-label">{{ band.label }}</span>
-            <div class="scale10-nums">
-              <button
-                v-for="n in band.values"
-                :key="n"
-                class="scale-btn"
-                :style="{ background: band.color }"
-                @click="choose('difficulty', n)"
-              >{{ n }}</button>
-            </div>
-          </div>
+          <button
+            v-for="opt in difficultyOptions"
+            :key="opt.value"
+            class="scale10-card"
+            @click="choose('difficulty', opt.value)"
+          >
+            <span class="scale10-num" :style="{ background: opt.color }">{{ opt.value }}</span>
+            <span class="scale10-card-label">{{ opt.label }}</span>
+          </button>
         </div>
       </template>
 
@@ -499,12 +485,17 @@ createApp({
       stressOptions: SCALE5(["Molt d'estrès", 'Amb estrès', 'Normal', 'Poc estrès', "Sense estrès"]),
       moodOptions: SCALE5(['Molt baix', 'Baix', 'Normal', 'Bo', 'Molt bo']),
 
-      difficultyBands: [
-        { label: 'Molt suau', values: [1, 2], color: '#2E9E5B' },
-        { label: 'Suau', values: [3, 4], color: '#7FB88A' },
-        { label: 'Moderat', values: [5, 6], color: '#F5C518' },
-        { label: 'Dur', values: [7, 8], color: '#E8720C' },
-        { label: 'Màxim esforç', values: [9, 10], color: '#C74B4B' },
+      difficultyOptions: [
+        { value: 1, label: 'Molt suau', color: '#2E9E5B' },
+        { value: 2, label: 'Molt suau', color: '#2E9E5B' },
+        { value: 3, label: 'Suau', color: '#7FB88A' },
+        { value: 4, label: 'Suau', color: '#7FB88A' },
+        { value: 5, label: 'Moderat', color: '#F5C518' },
+        { value: 6, label: 'Moderat', color: '#F5C518' },
+        { value: 7, label: 'Dur', color: '#E8720C' },
+        { value: 8, label: 'Dur', color: '#E8720C' },
+        { value: 9, label: 'Màxim esforç', color: '#C74B4B' },
+        { value: 10, label: 'Màxim esforç', color: '#C74B4B' },
       ],
 
       fallbackAvatar: FALLBACK_AVATAR,
